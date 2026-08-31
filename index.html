@@ -1429,12 +1429,16 @@ const DEF_PLOG={k:"game",dir:1};
 function nextSort(c,d,k){if(c.k!==k)return{k,dir:-1};if(c.dir===-1)return{k,dir:1};return{k:d.k,dir:d.dir};}
 
 function loadRoster(csv){
+  PHOTO_URL={}; SHEET_ADJ={};
   const {idx,rows}=tableFromCSV(csv);
-  ROSTER=rows.map(r=>({num:numId(r[idx["Numero"]]),nombre:(r[idx["Nombre"]]||"").trim(),pos:(r[idx["Posicion"]]||"").trim()}))
-    .filter(p=>p.num!==null);
+  ROSTER=rows.map(r=>{
+    const num=numId(r[idx["Numero"]]);
+    const foto=(idx["Foto"]!==undefined?(r[idx["Foto"]]||"").trim():"");
+    if(num!==null && foto) PHOTO_URL[num]=foto;
+    return {num,nombre:(r[idx["Nombre"]]||"").trim(),pos:(r[idx["Posicion"]]||"").trim()};
+  }).filter(p=>p.num!==null);
 }
 function loadFotos(csv){
-  PHOTO_URL={}; SHEET_ADJ={};
   if(!csv) return;
   let t; try{ t=tableFromCSV(csv); }catch(e){ return; }
   const {idx,rows}=t;
@@ -1768,7 +1772,7 @@ function renderFotos(){
   const applyLive=()=>{const st=pstyle(p.num);$("#fotoEditor").querySelectorAll(".fed-circle img").forEach(im=>im.style.cssText=st);const ch=$(`#fotoChips .chip[data-num="${p.num}"] img`);if(ch)ch.style.cssText=st;};
   $("#fotoEditor").querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{ADJ[p.num]=Object.assign(adjOf(p.num),{[r.dataset.k]:+r.value});saveADJ();applyLive();renderRanking();renderPlayer();});
   $("#fedReset").onclick=()=>{delete ADJ[p.num];saveADJ();renderFotos();renderRanking();renderPlayer();};
-  $("#fedExport").onclick=()=>{const t=$("#fedOut"),ad=adjOf(p.num);t.value=`Para la pestaña "Fotos" de tu planilla → fila del #${p.num}:  Zoom=${ad.z}  X=${ad.x}  Y=${ad.y}`;t.select();try{navigator.clipboard.writeText(t.value);}catch(e){}};
+  $("#fedExport").onclick=()=>{const t=$("#fedOut"),ad=adjOf(p.num);t.value=`Ajustes del #${p.num} (se guardan en este navegador):  Zoom=${ad.z}  X=${ad.x}  Y=${ad.y}`;t.select();try{navigator.clipboard.writeText(t.value);}catch(e){}};
   const opts=[...ROSTER].sort((x,y)=>x.num-y.num).map(pl=>`<option value="${pl.num}">#${pl.num} ${pl.nombre}</option>`).join("");
   $("#fotoUpload").innerHTML=`<div class="upl"><div class="upl-h">📤 Subir foto (con Apps Script)</div>
     <div class="upl-row"><select id="uplNum">${opts}</select><input type="file" id="uplFile" accept="image/*"><button class="btn" id="uplBtn">Subir</button></div>
