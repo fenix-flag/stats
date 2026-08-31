@@ -153,6 +153,7 @@
   .card .v{font-family:var(--font-display);font-size:26px;color:var(--turf);margin-top:5px;font-variant-numeric:tabular-nums}
   .card.def .v{color:var(--def)}
   .card .csub{font-size:13px;color:var(--muted);margin-top:8px;font-weight:600}
+  .card .k2{margin-top:14px}
   .card .v .vsub{font-size:15px;color:var(--muted);font-family:var(--font-body);font-weight:600}
   .scoreboard{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}
   .sb-team{text-align:center;min-width:0;flex:none;width:96px}
@@ -1608,17 +1609,19 @@ function renderScoreboard(){
   const gs=games(), season=playersFor(null);
   const R=seasonRecord();
   const tds=season.reduce((s,p)=>s+p.td,0);
+  const p6t=season.reduce((s,p)=>s+(p.pick6||0),0);
   const top=[...season].sort((a,b)=>b.points-a.points)[0];
   const cards=[
     {k:"Partidos jugados",v:R.jugados,count:true,sub:`${R.v}V-${R.d}D`},
     {k:"Puntos a favor",v:R.pf,count:true},
     {k:"Puntos en contra",v:R.pa,count:true},
-    {k:"TD de la temporada",v:tds,count:true},
+    {k:"TD de la temporada",v:tds,count:true,sub2:p6t>0?{k:"Pick 6",v:p6t}:null},
     {k:"Goleador",v:top?top.nombre:"—",small:true,sub:top?`${top.points} pts`:""},
   ];
   $("#readouts").innerHTML=cards.map(c=>
     `<div class="readout"><div class="k">${c.k}</div>
      <div class="v ${c.small?'small':''}" ${c.count?`data-count="${c.v}"`:""}>${c.count?0:c.v}</div>
+     ${c.sub2?`<div class="k" style="margin-top:12px">${c.sub2.k}</div><div class="v" data-count="${c.sub2.v}">0</div>`:""}
      ${c.sub?`<div class="sub">${c.sub}</div>`:""}</div>`).join("");
   $("#seasonTag").textContent=`${R.jugados} partidos · ${R.v}V-${R.d}D · ${season.length} jugadores con acción`;
   animateCounts();
@@ -1690,10 +1693,11 @@ function renderGame(){
     <div class="k">Resultado</div><div class="rv">${word}${note}</div>
     <div class="scoreboard">${sbteam(CONFIG.TEAM_NAME,"FENIX")}<div class="sb-score">${ff==null?'?':ff} <span class="sb-sep">-</span> ${rr==null?'?':rr}</div>${sbteam(rivalName,rivalName)}</div></div>`;
   const pct=(v,d)=>d?Math.round(v)+"%":"—";
+  const p6=total.pick6>0?{k:"Pick 6",v:total.pick6}:null;
   const statList = gameSide==="off"
-    ? [{k:"Touchdowns",v:total.td},{k:"Puntos extra",v:`${peConv}/${peAtt}<span class="vsub"> (${pePts} pts)</span>`},{k:"% Pase",v:pct(total.pasPct,total._dTotal)},{k:"% Recepción",v:pct(total.recPct,total._dRecTot)}]
-    : [{k:"% Flags",v:pct(total.flagPct,total._dFlagTot)},{k:"Deflecciones",v:total.deflec},{k:"Intercepciones",v:total.intercep}];
-  const stats=statList.map(c=>`<div class="card ${gameSide==='def'?'def':''}"><div class="k">${c.k}</div><div class="v">${c.v}</div>${c.sub?`<div class="csub">${c.sub}</div>`:''}</div>`).join("");
+    ? [{k:"Touchdowns",v:total.td,sub2:p6},{k:"Puntos extra",v:`${peConv}/${peAtt}<span class="vsub"> (${pePts} pts)</span>`},{k:"% Pase",v:pct(total.pasPct,total._dTotal)},{k:"% Recepción",v:pct(total.recPct,total._dRecTot)}]
+    : [{k:"% Flags",v:pct(total.flagPct,total._dFlagTot)},{k:"Deflecciones",v:total.deflec},{k:"Intercepciones",v:total.intercep,sub2:p6}];
+  const stats=statList.map(c=>`<div class="card ${gameSide==='def'?'def':''}"><div class="k">${c.k}</div><div class="v">${c.v}</div>${c.sub2?`<div class="k k2">${c.sub2.k}</div><div class="v">${c.sub2.v}</div>`:''}${c.sub?`<div class="csub">${c.sub}</div>`:''}</div>`).join("");
   $("#gameCards").innerHTML=resCard+stats;
   const cols=gameSide==="off"?OFF_COLS:DEF_COLS, st=gameSort[gameSide];
   const rows=matchSearch([...players],$("#gameSearch").value).sort((a,b)=>{const va=a[st.k],vb=b[st.k];return typeof va==="string"?st.dir*String(va).localeCompare(vb):st.dir*(va-vb);});
