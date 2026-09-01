@@ -72,7 +72,7 @@
   .pod.p1 .flag-tail{position:absolute;top:-10px;left:50%;transform:translateX(-50%)}
   .pod.p3 .val{color:#D9955B}
   .pod-av{width:104px;height:140px;overflow:hidden;margin:6px auto 2px;display:grid;place-items:end center}
-  .pod-av img{width:100%;height:100%;object-fit:contain;object-position:bottom center}
+  .pod-av img{width:100%;height:100%;object-fit:cover}
   .pod-av .n{font-family:var(--font-display);font-size:40px;color:var(--muted)}
   .pod.p1 .pod-av{width:126px;height:168px}
   .rk-h{text-align:left}
@@ -113,7 +113,9 @@
   .fed-circle{width:120px;height:120px;border-radius:50%;overflow:hidden;background:var(--panel-2);border:2px solid var(--gold)}
   .fed-circle img{width:100%;height:100%;object-fit:cover}
   .fed-rect{width:150px;height:210px;border-radius:12px;overflow:hidden;background:radial-gradient(58% 55% at 50% 42%,rgba(255,194,75,.16),transparent 72%)}
-  .fed-rect img{width:100%;height:100%;object-fit:contain}
+  .fed-rect img{width:100%;height:100%;object-fit:cover}
+  .fed-zoom{width:100%;margin-top:8px}
+  .fed-circle,.fed-rect{cursor:grab;touch-action:none}
   .fed-ctrls{flex:1;min-width:240px;display:flex;flex-direction:column;gap:12px}
   .fed-name{font-family:var(--font-display);font-size:22px;text-transform:uppercase}
   .fed-name small{color:var(--muted)}
@@ -150,17 +152,17 @@
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
   .card .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .card .v{font-family:var(--font-display);font-size:26px;color:var(--turf);margin-top:5px;font-variant-numeric:tabular-nums}
+  .card .v{font-family:var(--font-display);font-size:clamp(22px,6vw,26px);color:var(--turf);margin-top:5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
   .card.def .v{color:var(--def)}
   .card .csub{font-size:13px;color:var(--muted);margin-top:8px;font-weight:600}
   .card .k2{margin-top:14px}
   .card .v .vsub{font-size:15px;color:var(--muted);font-family:var(--font-body);font-weight:600}
-  .scoreboard{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}
-  .sb-team{text-align:center;min-width:0;flex:none;width:96px}
-  .sb-logo{width:54px;height:54px;object-fit:contain;margin:0 auto 8px;display:block}
+  .scoreboard{display:flex;align-items:center;justify-content:space-between;gap:clamp(6px,3vw,16px);margin-top:14px}
+  .sb-team{text-align:center;min-width:0;flex:none;width:clamp(66px,22vw,96px)}
+  .sb-logo{width:clamp(38px,12vw,54px);height:clamp(38px,12vw,54px);object-fit:contain;margin:0 auto 8px;display:block}
   .sb-logo.ph{width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;color:var(--muted);background:var(--panel-2);border-radius:12px}
   .sb-nm{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sb-score{flex:1;text-align:center;font-family:var(--font-display);font-size:40px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .sb-score{flex:1;text-align:center;font-family:var(--font-display);font-size:clamp(26px,7vw,40px);line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
   .sb-sep{color:var(--muted)}
   .card .csub b{color:var(--turf);font-family:var(--font-display);font-size:17px;font-weight:400}
   .card.def .csub b{color:var(--def)}
@@ -204,6 +206,7 @@
   footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
   @media(max-width:820px){.cards{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:720px){.readouts{grid-template-columns:repeat(2,1fr)}.podium{grid-template-columns:1fr}.pod.p1{order:-1}}
+  @media(max-width:560px){.cards{grid-template-columns:repeat(2,1fr)}.card.result{grid-column:1 / -1}.sb-nm{font-size:9px}}
   thead th .car2{color:var(--line);font-size:10px}
   .chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px}
   .chip{flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;border:none;cursor:pointer;width:62px}
@@ -216,7 +219,7 @@
   .pf-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden}
   .pf-head::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--flag),var(--gold),var(--turf))}
   .pf-photo{width:210px;height:300px;flex:none;overflow:hidden;border-radius:12px;background:radial-gradient(58% 55% at 50% 42%,rgba(255,194,75,.16),transparent 72%)}
-  .pf-photo img{width:100%;height:100%;object-fit:contain;object-position:bottom center;filter:drop-shadow(0 8px 18px rgba(0,0,0,.55))}
+  .pf-photo img{width:100%;height:100%;object-fit:cover}
   .pf-photo.pf-ph{display:grid;place-items:center;font-family:var(--font-display);font-size:64px;color:var(--muted)}
   .pf-photo.pf-ph{display:grid;place-items:center;font-family:var(--font-display);font-size:64px;color:var(--muted);background:var(--panel-2);border-radius:14px;width:180px;height:230px}
   .pf-id{flex:1;min-width:170px}
@@ -336,9 +339,9 @@
     <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Liga</h2>
       <div class="seg" id="ligaSeg"><button class="on" data-lv="tabla">Tabla</button><button data-lv="fixture">Fixture</button></div>
     </div>
-    <p class="note"><span>🏆</span><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
     <div id="ligaTablaWrap"><div class="table-scroll"><table id="ligaTable"></table></div></div>
     <div id="ligaFixture" style="display:none"></div>
+    <p class="note"><span>🏆</span><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
   </section>
 
   <section class="panel-view" id="view-fotos" role="tabpanel">
@@ -1383,15 +1386,23 @@ function renderLiga(){
   $("#ligaTablaWrap").style.display=ligaView==="tabla"?"block":"none";
   fEl.style.display=ligaView==="fixture"?"block":"none";
 }
-/* ===== Ajustes de encuadre de fotos ===== */
-const DEF_ADJ={z:100,x:50,y:18};
+/* ===== Ajustes de encuadre de fotos (círculo y ficha por separado) ===== */
+const DEF_ADJ_C={z:100,x:50,y:35}, DEF_ADJ_F={z:100,x:50,y:22};
 function loadADJ(){try{return JSON.parse(localStorage.getItem('fenixPhotoAdj')||'{}')}catch(e){return {};}}
 let ADJ=loadADJ();
 function saveADJ(){try{localStorage.setItem('fenixPhotoAdj',JSON.stringify(ADJ))}catch(e){}}
 let PHOTO_URL={}, SHEET_ADJ={};
 function photoSrc(n){return PHOTO_URL[n]||(gender==="m"?PHOTOS[n]:null)||null;}
-function adjOf(n){return Object.assign({},DEF_ADJ,SHEET_ADJ[n]||{},ADJ[n]||{});}
-function pstyle(n){const a=adjOf(n);return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
+function normAdj(n){const a=ADJ[n];if(!a)return null;if(a.c||a.f)return a;return {c:{z:a.z,x:a.x,y:a.y}};}
+function adjOf(n,which){which=which||"c";const def=which==="f"?DEF_ADJ_F:DEF_ADJ_C;const a=normAdj(n)||{};return Object.assign({},def,a[which]||{});}
+function setAdj(n,which,patch,light){const cur=normAdj(n)||{};cur[which]=Object.assign({},adjOf(n,which),patch);ADJ[n]=cur;saveADJ();
+  const styC="object-fit:cover;"+pstyle(n),styF="object-fit:cover;"+pstyleF(n);
+  document.querySelectorAll("#fotoEditor .fed-circle img").forEach(im=>im.style.cssText=styC);
+  document.querySelectorAll("#fotoEditor .fed-rect img").forEach(im=>im.style.cssText=styF);
+  const ch=document.querySelector(`#fotoChips .chip[data-num="${n}"] img`);if(ch)ch.style.cssText=styC;
+  if(!light){renderRanking();renderPlayer();}}
+function pstyle(n){const a=adjOf(n,"c");return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
+function pstyleF(n){const a=adjOf(n,"f");return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
 const TEAM_LOGOS={};
 function loadLogoAdj(){try{return JSON.parse(localStorage.getItem("fenixLogoAdj")||"{}")}catch(e){return {};}}
 let LOGO_ADJ=loadLogoAdj();
@@ -1655,7 +1666,7 @@ function renderRanking(){
   const show=p=>isPct?((p[dk]||0)>0?Math.round(p[metric])+"%":"—"):p[metric];
   const width=p=>isPct?((p[dk]||0)>0?Math.round(p[metric]):0):Math.round(((p[metric]||0)/max)*100);
   const avCirc=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" style="${pstyle(p.num)}" alt="">`:`<span class="n">${p.num}</span>`;};
-  const avFicha=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" alt="">`:`<span class="n">${p.num}</span>`;};
+  const avFicha=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="">`:`<span class="n">${p.num}</span>`;};
   const order=[data[1],data[0],data[2]],cls=["p2","p1","p3"],pos=["2º","1º","3º"];
   $("#podium").innerHTML=order.map((p,i)=>{
     if(!p)return `<div class="pod ${cls[i]}"><div class="pos">${pos[i]}</div><div class="nm">—</div></div>`;
@@ -1734,7 +1745,7 @@ function renderPlayer(){
   const {fo,fd}=scopeRows(null), s=combine(fo,fd,p), active=playersFor(null);
   const rankOf=k=>[...active].sort((a,b)=>b[k]-a[k]).findIndex(x=>x.num===p.num)+1;
   const ph=photoSrc(p.num);
-  const avatar=ph?`<div class="pf-photo"><img src="${ph}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
+  const avatar=ph?`<div class="pf-photo"><img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
   const cats=[["points","Puntos"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
   const medal=r=>r===1?"🥇":r===2?"🥈":"🥉";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
@@ -1759,24 +1770,32 @@ function renderFotos(){
   if(fotoSel==null||!list.find(p=>p.num===fotoSel))fotoSel=list[0].num;
   $("#fotoChips").innerHTML=list.map(p=>`<button class="chip ${p.num===fotoSel?'sel':''}" data-num="${p.num}" title="${p.nombre}"><span class="chip-av"><img src="${photoSrc(p.num)}" style="${pstyle(p.num)}"></span><span class="chip-nm">#${p.num}</span></button>`).join("");
   $("#fotoChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{fotoSel=+c.dataset.num;renderFotos();});
-  const p=ROSTER.find(x=>x.num===fotoSel), a=adjOf(p.num);
+  const p=ROSTER.find(x=>x.num===fotoSel), ac=adjOf(p.num,"c"), af=adjOf(p.num,"f");
   $("#fotoEditor").innerHTML=`<div class="fed">
     <div class="fed-prev">
-      <div><div class="fed-lbl">Círculo</div><div class="fed-circle"><img src="${photoSrc(p.num)}" style="${pstyle(p.num)}"></div></div>
-      <div><div class="fed-lbl">Ficha</div><div class="fed-rect"><img src="${photoSrc(p.num)}"></div></div>
+      <div><div class="fed-lbl">Círculo</div><div class="fed-circle" data-edit="c"><img src="${photoSrc(p.num)}" style="object-fit:cover;${pstyle(p.num)}"></div>
+        <input type="range" class="fed-zoom" data-which="c" min="100" max="320" value="${ac.z}"></div>
+      <div><div class="fed-lbl">Ficha</div><div class="fed-rect" data-edit="f"><img src="${photoSrc(p.num)}" style="object-fit:cover;${pstyleF(p.num)}"></div>
+        <input type="range" class="fed-zoom" data-which="f" min="100" max="320" value="${af.z}"></div>
     </div>
     <div class="fed-ctrls">
       <div class="fed-name">${p.nombre} <small>#${p.num}</small></div>
-      <label>Zoom<input type="range" min="60" max="220" value="${a.z}" data-k="z"></label>
-      <label>Posición horizontal<input type="range" min="0" max="100" value="${a.x}" data-k="x"></label>
-      <label>Posición vertical<input type="range" min="0" max="100" value="${a.y}" data-k="y"></label>
-      <div class="fed-btns"><button class="btn ghost" id="fedReset">Restablecer</button><button class="btn" id="fedExport">Exportar ajustes</button></div>
-      <textarea id="fedOut" readonly placeholder="Tocá 'Exportar ajustes' para copiar el código de tus encuadres…"></textarea>
+      <div class="hint">Arrastrá cada imagen para encuadrarla y usá la barra de zoom debajo. El círculo y la ficha se ajustan por separado.</div>
+      <div class="fed-btns"><button class="btn ghost" id="fedReset">Restablecer</button></div>
     </div></div>`;
-  const applyLive=()=>{const st=pstyle(p.num);$("#fotoEditor").querySelectorAll(".fed-circle img").forEach(im=>im.style.cssText=st);const ch=$(`#fotoChips .chip[data-num="${p.num}"] img`);if(ch)ch.style.cssText=st;};
-  $("#fotoEditor").querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{ADJ[p.num]=Object.assign(adjOf(p.num),{[r.dataset.k]:+r.value});saveADJ();applyLive();renderRanking();renderPlayer();});
+  $("#fotoEditor").querySelectorAll("[data-edit]").forEach(el=>{
+    const which=el.dataset.edit; el.style.touchAction="none"; el.style.cursor="grab";
+    let drag=false,sx,sy,ax,ay;
+    el.addEventListener("pointerdown",e=>{drag=true;try{el.setPointerCapture(e.pointerId)}catch(_){}const a=adjOf(p.num,which);sx=e.clientX;sy=e.clientY;ax=a.x;ay=a.y;el.style.cursor="grabbing";e.preventDefault();});
+    el.addEventListener("pointermove",e=>{if(!drag)return;const w=el.clientWidth||1,h=el.clientHeight||1;let nx=ax-((e.clientX-sx)/w)*100,ny=ay-((e.clientY-sy)/h)*100;nx=Math.max(0,Math.min(100,nx));ny=Math.max(0,Math.min(100,ny));setAdj(p.num,which,{x:Math.round(nx),y:Math.round(ny)},true);});
+    const end=()=>{if(!drag)return;drag=false;el.style.cursor="grab";renderRanking();renderPlayer();};
+    el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
+  });
+  $("#fotoEditor").querySelectorAll(".fed-zoom").forEach(r=>{
+    r.oninput=()=>setAdj(p.num,r.dataset.which,{z:+r.value},true);
+    r.onchange=()=>{renderRanking();renderPlayer();};
+  });
   $("#fedReset").onclick=()=>{delete ADJ[p.num];saveADJ();renderFotos();renderRanking();renderPlayer();};
-  $("#fedExport").onclick=()=>{const t=$("#fedOut"),ad=adjOf(p.num);t.value=`Ajustes del #${p.num} (se guardan en este navegador):  Zoom=${ad.z}  X=${ad.x}  Y=${ad.y}`;t.select();try{navigator.clipboard.writeText(t.value);}catch(e){}};
   const opts=[...ROSTER].sort((x,y)=>x.num-y.num).map(pl=>`<option value="${pl.num}">#${pl.num} ${pl.nombre}</option>`).join("");
   $("#fotoUpload").innerHTML=`<div class="upl"><div class="upl-h">📤 Subir foto (con Apps Script)</div>
     <div class="upl-row"><select id="uplNum">${opts}</select><input type="file" id="uplFile" accept="image/*"><button class="btn" id="uplBtn">Subir</button></div>
