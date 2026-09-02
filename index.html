@@ -86,6 +86,7 @@
   .rk .nm{font-weight:700}
   .rk .nm small{color:var(--muted);font-weight:600;margin-left:2px}
   .rk .val{width:100%}
+  .rk .rk-num{text-align:center;font-family:var(--font-display);font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
   .rk .valwrap{display:flex;align-items:center;gap:12px}
   .rk .track{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;min-width:40px}
   .rk .fill{display:block;height:100%;border-radius:3px;background:var(--turf)}
@@ -228,10 +229,14 @@
   .pf-pos{color:var(--muted);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:12px}
   .pf-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .pf-badge{font-size:12px;font-weight:700;background:rgba(255,194,75,.12);color:var(--gold);border:1px solid rgba(255,194,75,.3);border-radius:999px;padding:3px 10px}
-  .pf-reads{display:flex;gap:10px;flex-wrap:wrap}
+  .pf-reads{display:flex;flex-direction:column;gap:12px}
+  .pf-rgroup{display:flex;flex-direction:column;gap:6px}
+  .pf-rlabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+  .pf-rlabel.o{color:var(--turf)} .pf-rlabel.d{color:var(--def)} .pf-rlabel.g{color:var(--gold)}
+  .pf-rcards{display:flex;gap:8px;flex-wrap:wrap}
   .pf-read{background:rgba(9,12,30,.5);border:1px solid var(--line);border-radius:10px;padding:8px 14px;text-align:center;min-width:62px}
   .pf-read span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block}
-  .pf-read b{font-family:var(--font-display);font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pf-read b{font-family:var(--font-display);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
   .pf-grids{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
   .pf-grid{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   .pf-grid h3{margin:0 0 10px;font-family:var(--font-display);font-weight:400;text-transform:uppercase;font-size:16px}
@@ -270,12 +275,12 @@
   </div>
 
   <section class="panel-view" id="view-temporada" role="tabpanel">
-    <div class="section-head"><h2>Acumulado de la temporada</h2>
-      <div class="seg" id="segSeason" style="margin-left:auto">
+    <div class="section-head"><h2>Acumulado de la temporada</h2></div>
+    <div class="tablebar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div class="seg" id="segSeason">
         <button class="off" data-side="off" aria-pressed="true">Ofensiva</button>
         <button class="def" data-side="def" aria-pressed="false">Defensiva</button></div>
-    </div>
-    <div class="tablebar"><input class="search" id="seasonSearch" type="search" placeholder="🔍 Buscar jugador o número…"></div>
+      <input class="search" id="seasonSearch" type="search" placeholder="🔍 Buscar jugador o número…" style="flex:1;min-width:180px"></div>
     <div class="table-scroll"><table id="seasonTable"></table></div>
     <p class="note"><span>ℹ️</span><span>Tocá un encabezado para ordenar. Todo sale del play-by-play de tu planilla; la fila dorada es el total de FENIX.</span></p>
   </section>
@@ -292,6 +297,7 @@
         <optgroup label="Pase">
           <option value="com">Completados</option>
           <option value="passYD">Yardas de pase</option>
+          <option value="promPass">Prom. yds pase</option>
           <option value="pasTD">TD de pase</option>
           <option value="pasPct">% Pases</option>
         </optgroup>
@@ -299,8 +305,10 @@
           <option value="recComp">Recepciones</option>
           <option value="recPct">% Recepción</option>
           <option value="ydRec">Yardas recepción</option>
+          <option value="promRec">Prom. yds recepción</option>
           <option value="runs">Corridas</option>
           <option value="runYD">Yardas corrida</option>
+          <option value="promRun">Prom. yds corrida</option>
         </optgroup>
         <optgroup label="Defensa">
           <option value="flagBien">Flags</option>
@@ -318,12 +326,12 @@
   </section>
 
   <section class="panel-view" id="view-partido" role="tabpanel">
-    <div class="section-head"><h2>Detalle por partido</h2>
-      <div class="seg" id="segGame" style="margin-left:auto">
+    <div class="section-head"><h2>Detalle por partido</h2></div>
+    <div class="metric-row" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div class="seg" id="segGame">
         <button class="off" data-side="off" aria-pressed="true">Ofensiva</button>
         <button class="def" data-side="def" aria-pressed="false">Defensiva</button></div>
-    </div>
-    <div class="metric-row"><label for="gameSel">Partido</label><select id="gameSel"></select></div>
+      <label for="gameSel" style="margin-left:4px">Partido</label><select id="gameSel"></select></div>
     <div class="cards" id="gameCards"></div>
     <div class="tablebar"><input class="search" id="gameSearch" type="search" placeholder="🔍 Buscar jugador o número…"></div>
     <div class="table-scroll"><table id="gameTable"></table></div>
@@ -1653,18 +1661,19 @@ function renderSeason(){
   renderTable($("#seasonTable"),cols,players,total,st,k=>{
     if(st.k===k){sortState[seasonSide]=nextSort(st,DEF_SEASON[seasonSide],k);}else sortState[seasonSide]={k,dir:-1};renderSeason();});
 }
-const UNIT={points:"pts",td:"TD",amagues:"amag",com:"comp",passYD:"yds",pasTD:"TD",pasPct:"%",recPct:"%",flagPct:"%",safety:"safety",
+const UNIT={points:"pts",td:"TD",amagues:"amag",com:"comp",passYD:"yds",pasTD:"TD",pasPct:"%",recPct:"%",flagPct:"%",safety:"safety",promPass:"yds/pase",promRec:"yds/rec",promRun:"yds/corr",
   recComp:"rec",ydRec:"yds",runs:"runs",runYD:"yds",flagBien:"flags",deflec:"defl",intercep:"int",sack:"sacks",pick6:"pick6"};
 const PCT_DENOM={pasPct:"_dTotal",recPct:"_dRecTot",flagPct:"_dFlagTot"};
+const AVG_DENOM={promPass:"_dCom",promRec:"_dRecPos",promRun:"_dRuns"};
 function renderRanking(){
   const metric=$("#metric").value;
   const isPct=metric in PCT_DENOM, dk=PCT_DENOM[metric];
-  const sv=p=>isPct?((p[dk]||0)>0?(p[metric]||0):-1):(p[metric]||0);
+  const isAvg=metric in AVG_DENOM, ak=AVG_DENOM[metric];
+  const hasVal=p=>isPct?(p[dk]||0)>0:(isAvg?(p[ak]||0)>0:true);
+  const sv=p=>hasVal(p)?(p[metric]||0):-1;
   const data=playersFor(null).sort((a,b)=>sv(b)-sv(a));
-  const max=isPct?100:(data.length?Math.max(1,data[0][metric]):1);
   const unit=UNIT[metric]||"";
-  const show=p=>isPct?((p[dk]||0)>0?Math.round(p[metric])+"%":"—"):p[metric];
-  const width=p=>isPct?((p[dk]||0)>0?Math.round(p[metric]):0):Math.round(((p[metric]||0)/max)*100);
+  const show=p=>!hasVal(p)?"—":(isPct?Math.round(p[metric])+"%":(isAvg?(+p[metric]).toFixed(1):p[metric]));
   const avCirc=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" style="${pstyle(p.num)}" alt="">`:`<span class="n">${p.num}</span>`;};
   const avFicha=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="">`:`<span class="n">${p.num}</span>`;};
   const order=[data[1],data[0],data[2]],cls=["p2","p1","p3"],pos=["2º","1º","3º"];
@@ -1673,12 +1682,12 @@ function renderRanking(){
     const tail=cls[i]==="p1"?'<span class="flag-tail" aria-hidden="true"></span>':"";
     return `<div class="pod ${cls[i]}">${tail}<div class="pos">${pos[i]}</div><div class="pod-av">${avFicha(p)}</div>
       <div class="nm">${p.nombre}</div><div class="val">${show(p)}</div><div class="unit">${unit}</div></div>`;}).join("");
-  let h=`<thead><tr><th class="static rk-h">Pos</th><th class="static rk-h">Jugador</th><th class="rk-h rk-r">${(unit||"").toUpperCase()}</th></tr></thead><tbody>`;
+  let h=`<thead><tr><th class="static rk-h">Pos</th><th class="static rk-h">Jugador</th><th class="rk-h" style="text-align:center">${(unit||"").toUpperCase()}</th></tr></thead><tbody>`;
   data.forEach((r,i)=>{
     const medal=i<3?`<span class="medal m${i+1}">${i+1}</span>`:`<span class="rk-rank">${i+1}</span>`;
     h+=`<tr class="rk"><td class="pos">${medal}</td>
       <td><div class="who"><span class="rk-av">${avCirc(r)}</span><span class="nm">${r.nombre} <small>#${r.num}</small></span></div></td>
-      <td class="val"><div class="valwrap"><span class="track"><span class="fill" style="width:${width(r)}%"></span></span><span class="num">${show(r)}</span></div></td></tr>`;});
+      <td class="val rk-num">${show(r)}</td></tr>`;});
   $("#rankTable").innerHTML=h+"</tbody>";
 }
 function fillGameSelector(){
@@ -1716,14 +1725,14 @@ function renderGame(){
 }
 /* ===== Por jugador ===== */
 const PLOG_COLS=[
-  {k:"game",t:"Partido",fmt:"txt",st:true},
+  {k:"gameLabel",t:"Partido",fmt:"txt",st:true},
   {k:"points",t:"Pts",fmt:"int"},{k:"td",t:"TD",fmt:"int"},
   {k:"com",t:"Com",fmt:"int"},{k:"passYD",t:"YdPase",fmt:"int"},{k:"pasTD",t:"TDp",fmt:"int"},
   {k:"recComp",t:"Rec",fmt:"int"},{k:"ydRec",t:"YdRec",fmt:"int"},
   {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YdCor",fmt:"int"},{k:"amagues",t:"Amag",fmt:"int"},
   {k:"flagBien",t:"Flags",fmt:"int"},{k:"deflec",t:"Defl",fmt:"int"},{k:"intercep",t:"Int",fmt:"int"},{k:"sack",t:"Sack",fmt:"int"},{k:"pick6",t:"Pk6",fmt:"int"},
 ];
-function playerGameLog(num){return games().map(g=>{const {fo,fd}=scopeRows(g);return {game:g,...combine(fo,fd,{num})};});}
+function playerGameLog(num){return games().map(g=>{const {fo,fd}=scopeRows(g);return {game:g,gameLabel:labelOf(g),...combine(fo,fd,{num})};});}
 function playerGamesPlayed(num){return playerGameLog(num).filter(r=>r.active).length;}
 function renderPlayerChips(){
   const list=[...ROSTER].sort((a,b)=>a.num-b.num);
@@ -1749,14 +1758,19 @@ function renderPlayer(){
   const cats=[["points","Puntos"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
   const medal=r=>r===1?"🥇":r===2?"🥈":"🥉";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
-  const reads=[["Puntos",s.points],["TD",s.td],["Partidos",playerGamesPlayed(p.num)]];
+  const ydsTot=s.passYD+s.ydRec+s.runYD;
+  const readRows=[{lbl:"Resumen",cls:"g",cards:[["Puntos",s.points],["TD",s.td],["Yds tot.",ydsTot]]}];
+  if((s._dTotal||0)>0) readRows.push({lbl:"Pase",cls:"o",cards:[["Yds",s.passYD],["TD",s.pasTD],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"]]});
+  if((s.recComp||0)>0||(s.runs||0)>0) readRows.push({lbl:"Recep / Corrida",cls:"o",cards:[["Yds rec",s.ydRec],["Yds cor",s.runYD],["Amagues",s.amagues]]});
+  const defAct=(s.flagBien||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0)+(s.pick6||0)+(s.safety||0);
+  if(defAct>0) readRows.push({lbl:"Defensa",cls:"d",cards:[["Flags",s.flagBien],["Deflec",s.deflec],["Intercep",s.intercep]]});
   const pasePairs=[["Comp / Inc",`${s.com} / ${s.inc}`],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"],["Yds pase",s.passYD],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD pase",s.pasTD],["PE pase",s.pasPE]];
   const recPairs=[["Recep",s.recComp],["Drops",s.drop],["% Rec",s._dRecTot?Math.round(s.recPct)+"%":"—"],["Yds recep",s.ydRec],["Corridas",s.runs],["Yds corr",s.runYD],["Amagues",s.amagues],["TD",s.td],["PE",s.peComp]];
   const defPairs=[["Flags",s.flagBien],["% Flag",s._dFlagTot?Math.round(s.flagPct)+"%":"—"],["Deflec",s.deflec],["Intercep",s.intercep],["Pick 6",s.pick6],["Sacks",s.sack],["Safety",s.safety],["Faltas",s.dfaltH]];
   box.innerHTML=`<div class="pf-head">${avatar}
     <div class="pf-id"><div class="pf-num">#${p.num}</div><div class="pf-name">${p.nombre}</div><div class="pf-pos">${p.pos}</div>
       <div class="pf-badges">${badges.map(b=>`<span class="pf-badge">${medal(b.r)} ${b.l}</span>`).join("")}</div></div>
-    <div class="pf-reads">${reads.map(([k,v])=>`<div class="pf-read"><span>${k}</span><b>${v}</b></div>`).join("")}</div></div>
+    <div class="pf-reads">${readRows.map(row=>`<div class="pf-rgroup"><div class="pf-rlabel ${row.cls}">${row.lbl}</div><div class="pf-rcards">${row.cards.map(([k,v])=>`<div class="pf-read"><span>${k}</span><b>${v}</b></div>`).join("")}</div></div>`).join("")}</div></div>
     <div class="pf-grids"><div class="pf-grid o"><h3>Pases</h3><div class="kvs">${pasePairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid o"><h3>Recepciones y corridas</h3><div class="kvs">${recPairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid d"><h3>Defensa</h3><div class="kvs">${defPairs.map(x=>kv(x[0],x[1])).join("")}</div></div></div>
