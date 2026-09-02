@@ -1759,9 +1759,10 @@ function renderPlayer(){
   const medal=r=>r===1?"🥇":r===2?"🥈":"🥉";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
   const ydsTot=s.passYD+s.ydRec+s.runYD;
-  const readRows=[{lbl:"Resumen",cls:"g",cards:[["Puntos",s.points],["TD",s.td],["Yds tot.",ydsTot]]}];
-  if((s._dTotal||0)>0) readRows.push({lbl:"Pase",cls:"o",cards:[["Yds",s.passYD],["TD",s.pasTD],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"]]});
-  if((s.recComp||0)>0||(s.runs||0)>0) readRows.push({lbl:"Recep / Corrida",cls:"o",cards:[["Yds rec",s.ydRec],["Yds cor",s.runYD],["Amagues",s.amagues]]});
+  const tdTot=(s.td||0)+(s.pasTD||0);
+  const readRows=[{lbl:"Resumen",cls:"g",cards:[["Puntos",s.points],["TD tot.",tdTot],["Yds tot.",ydsTot]]}];
+  if((s._dTotal||0)>0) readRows.push({lbl:"Pase",cls:"o",cards:[["Completos",s.com],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD",s.pasTD]]});
+  if((s.recComp||0)>0||(s.runs||0)>0) readRows.push({lbl:"Recep / Corrida",cls:"o",cards:[["Recep",s.recComp],["Corridas",s.runs],["Amagues",s.amagues]]});
   const defAct=(s.flagBien||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0)+(s.pick6||0)+(s.safety||0);
   if(defAct>0) readRows.push({lbl:"Defensa",cls:"d",cards:[["Flags",s.flagBien],["Deflec",s.deflec],["Intercep",s.intercep]]});
   const pasePairs=[["Comp / Inc",`${s.com} / ${s.inc}`],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"],["Yds pase",s.passYD],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD pase",s.pasTD],["PE pase",s.pasPE]];
