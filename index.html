@@ -182,20 +182,25 @@
   .fx-game.fx-me{background:linear-gradient(rgba(255,194,75,.08),rgba(255,194,75,.08)),var(--panel);border-color:rgba(255,194,75,.3)}
   .fx-t{flex:1;font-weight:600;font-size:14px}.fx-t.v{text-align:right}.fx-t.w{color:var(--turf);font-weight:800}.fx-t.l{color:var(--flag);font-weight:800}
   .fx-logo{width:28px;height:28px;object-fit:contain;flex:none}
-  .po-wrap{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;align-items:center;margin-top:4px}
-  .po-col-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);text-align:center;margin-bottom:8px}
-  .po-match{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .po-match.po-finalm{border-color:rgba(255,194,75,.5);box-shadow:0 0 0 1px rgba(255,194,75,.25)}
-  .po-team{display:flex;align-items:center;gap:10px;padding:11px 13px}
-  .po-team+.po-team{border-top:1px solid var(--line)}
-  .po-logo{width:30px;height:30px;object-fit:contain;flex:none}
-  .po-logo.ph{display:flex;align-items:center;justify-content:center;background:var(--panel-2);border-radius:8px;font-family:var(--font-display);color:var(--muted);font-size:13px}
-  .po-nm{flex:1;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .po-sc{font-family:var(--font-display);font-size:20px;font-variant-numeric:tabular-nums}
-  .po-win{background:rgba(61,220,132,.08)}.po-win .po-nm{color:var(--turf);font-weight:800}
-  .po-lose{opacity:.55}
-  .po-champ{text-align:center;margin-top:10px;font-family:var(--font-display);color:var(--gold);font-size:15px;text-transform:uppercase;letter-spacing:.04em}
-  @media(max-width:640px){.po-wrap{grid-template-columns:1fr}.po-final{order:3}}
+  .po-sec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);margin:6px 0 10px}
+  .po-sec.gold{color:var(--gold)}
+  .po-semis{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+  .po-match{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:18px}
+  .po-match.po-finalm{background:linear-gradient(180deg,rgba(255,194,75,.10),rgba(20,22,40,.6));border-color:rgba(255,194,75,.6)}
+  .po-col-h{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);text-align:center;margin-bottom:14px}
+  .po-duel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .po-side{text-align:center;flex:1;min-width:0}
+  .po-logo{width:60px;height:60px;object-fit:contain;margin:0 auto;display:block}
+  .po-finalm .po-logo{width:76px;height:76px}
+  .po-logo.ph{display:flex;align-items:center;justify-content:center;background:var(--panel-2);border-radius:14px;font-family:var(--font-display);color:var(--muted);font-size:22px}
+  .po-side-nm{margin-top:8px;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .po-s-win .po-side-nm{color:var(--turf);font-weight:800}
+  .po-s-lose{opacity:.5}
+  .po-mid{flex:0 0 auto;padding:0 clamp(6px,3vw,16px);text-align:center}
+  .po-score{font-family:var(--font-display);font-size:clamp(26px,7vw,34px);font-variant-numeric:tabular-nums}
+  .po-mid.big .po-score{font-size:clamp(34px,9vw,48px)}
+  .po-champtag{color:var(--gold);font-family:var(--font-display);font-size:15px;margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+  @media(max-width:560px){.po-semis{grid-template-columns:1fr}.po-side-nm{font-size:13px}}
   .fx-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .fx-ctrl label{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:700;text-transform:uppercase}
   .fx-ctrl select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 12px;font-size:14px;font-family:var(--font-body)}
@@ -1437,17 +1442,21 @@ function renderPlayoffs(){
   if(f1&&f2){ fin=bracket(f1,f2,finals); }
   else { const m=finals[0]; fin=m?{teams:[{n:m.local,s:m.gl},{n:m.visitante,s:m.gv}],played:m.gl!=null&&m.gv!=null,winner:winnerOf(m)}:{teams:[{n:f1||"Ganador Semi 1"},{n:f2||"Ganador Semi 2"}],played:false,winner:null}; }
   const champ=fin.winner;
-  const matchCard=(b,cls)=>{
+  const duel=(b,big)=>{
     const [a,bb]=b.teams;
-    const wname=b.winner?b.winner.toLowerCase():null;
-    const rowFor=x=>{const win=wname&&x.n.toLowerCase()===wname; const dim=b.played&&wname&&!win; return teamRow(x.n,x.s,win,dim);};
-    return `<div class="po-match ${cls||''}">${rowFor(a)}${rowFor(bb)}</div>`;
+    const wn=b.winner?b.winner.toLowerCase():null;
+    const cls=x=>{const w=wn&&x.n.toLowerCase()===wn;return w?"po-s-win":(b.played&&wn?"po-s-lose":"");};
+    const side=x=>`<div class="po-side ${cls(x)}">${logo(x.n)}<div class="po-side-nm">${x.n}</div></div>`;
+    const sc=(b.teams[0].s==null)?'vs':`${b.teams[0].s} - ${b.teams[1].s}`;
+    return `<div class="po-duel">${side(a)}<div class="po-mid ${big?'big':''}"><span class="po-score">${sc}</span>${big&&champ?`<div class="po-champtag">🏆 Campeón</div>`:''}</div>${side(bb)}</div>`;
   };
-  el.innerHTML=`<div class="po-wrap">
-    <div><div class="po-col-h">Semifinal · 1° vs 4°</div>${matchCard(sf1)}</div>
-    <div class="po-final"><div class="po-col-h" style="color:var(--gold)">Final</div>${matchCard(fin,"po-finalm")}${champ?`<div class="po-champ">🏆 Campeón: ${champ}</div>`:'<div class="po-champ" style="color:var(--muted)">A definir</div>'}</div>
-    <div><div class="po-col-h">Semifinal · 2° vs 3°</div>${matchCard(sf2)}</div>
-  </div>`;
+  el.innerHTML=`<div class="po-sec">Semifinales</div>
+    <div class="po-semis">
+      <div class="po-match"><div class="po-col-h">1° vs 4°</div>${duel(sf1)}</div>
+      <div class="po-match"><div class="po-col-h">2° vs 3°</div>${duel(sf2)}</div>
+    </div>
+    <div class="po-sec gold">Final</div>
+    <div class="po-match po-finalm">${duel(fin,true)}${!champ?'<div class="po-champtag" style="color:var(--muted);text-align:center;margin-top:8px">A definir</div>':''}</div>`;
 }
 /* ===== Ajustes de encuadre de fotos (círculo y ficha por separado) ===== */
 const DEF_ADJ_C={z:100,x:50,y:35}, DEF_ADJ_F={z:100,x:50,y:22};
