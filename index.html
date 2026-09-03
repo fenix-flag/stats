@@ -214,7 +214,7 @@
   .tf-colhd.o{color:var(--turf)} .tf-colhd.d{color:var(--def)}
   .tf-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
   .tf-row:last-child{border-bottom:none}
-  .tf-lbl{color:var(--muted)} .tf-val{font-weight:800;font-variant-numeric:tabular-nums}
+  .tf-lbl{color:var(--muted)} .tf-val{font-weight:800;font-variant-numeric:tabular-nums;color:var(--gold)}
   @media(max-width:560px){.po-semis{grid-template-columns:1fr}.po-side-nm{font-size:13px}}
   .fx-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .fx-ctrl label{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:700;text-transform:uppercase}
@@ -1754,7 +1754,14 @@ function renderTeamCard(total){
   });
   const rec=seasonRecord();
   const logo=($(".team-logo")&&$(".team-logo").src)||logoSrc(CONFIG.TEAM_NAME)||"";
-  const mini=g=>`<div class="tf-col"><div class="tf-colhd ${g.gc}">${g.name}</div>${g.items.map(c=>`<div class="tf-row"><span class="tf-lbl">${c.t}</span><span class="tf-val">${fmtCell(total,c)}</span></div>`).join("")}</div>`;
+  const LBL={com:"Completos",inc:"Incompletos",total:"Intentos",pasPct:"% Pase",passYD:"Yds pase",promPass:"Prom pase",pasTD:"TD pase",pasPE:"PE pase",
+    recComp:"Recepciones",drop:"Drops",recTot:"Objetivos",recPct:"% Recep",ydRec:"Yds recep",promRec:"Prom recep",
+    runs:"Corridas",runYD:"Yds corrida",promRun:"Prom corrida",amagues:"Amagues",td:"Touchdowns",peComp:"Puntos extra",
+    faltH:"Faltas hechas",faltR:"Faltas recibidas",
+    flagBien:"Flags bien",flagMal:"Flags mal",flagTot:"Flags total",flagPct:"% Flags",
+    deflec:"Deflecciones",intercep:"Intercepciones",amagues2:"Amagues",pick6:"Pick 6",sack:"Sacks",safety:"Safety",
+    dfaltH:"Faltas hechas",dfaltR:"Faltas recibidas"};
+  const mini=g=>`<div class="tf-col"><div class="tf-colhd ${g.gc}">${g.name}</div>${g.items.map(c=>`<div class="tf-row"><span class="tf-lbl">${LBL[c.k]||c.t}</span><span class="tf-val">${fmtCell(total,c)}</span></div>`).join("")}</div>`;
   el.innerHTML=`<div class="tf-card">
     <div class="tf-head">${logo?`<img class="tf-logo" src="${logo}">`:''}<div><div class="tf-name">Total FENIX</div><div class="tf-sub">${rec.jugados} partidos · ${rec.v}V-${rec.d}D · ${seasonSide==="off"?"Ofensiva":"Defensiva"}</div></div></div>
     <div class="tf-grid">${groups.map(mini).join("")}</div></div>`;
