@@ -182,6 +182,20 @@
   .fx-game.fx-me{background:linear-gradient(rgba(255,194,75,.08),rgba(255,194,75,.08)),var(--panel);border-color:rgba(255,194,75,.3)}
   .fx-t{flex:1;font-weight:600;font-size:14px}.fx-t.v{text-align:right}.fx-t.w{color:var(--turf);font-weight:800}.fx-t.l{color:var(--flag);font-weight:800}
   .fx-logo{width:28px;height:28px;object-fit:contain;flex:none}
+  .po-wrap{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;align-items:center;margin-top:4px}
+  .po-col-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);text-align:center;margin-bottom:8px}
+  .po-match{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .po-match.po-finalm{border-color:rgba(255,194,75,.5);box-shadow:0 0 0 1px rgba(255,194,75,.25)}
+  .po-team{display:flex;align-items:center;gap:10px;padding:11px 13px}
+  .po-team+.po-team{border-top:1px solid var(--line)}
+  .po-logo{width:30px;height:30px;object-fit:contain;flex:none}
+  .po-logo.ph{display:flex;align-items:center;justify-content:center;background:var(--panel-2);border-radius:8px;font-family:var(--font-display);color:var(--muted);font-size:13px}
+  .po-nm{flex:1;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .po-sc{font-family:var(--font-display);font-size:20px;font-variant-numeric:tabular-nums}
+  .po-win{background:rgba(61,220,132,.08)}.po-win .po-nm{color:var(--turf);font-weight:800}
+  .po-lose{opacity:.55}
+  .po-champ{text-align:center;margin-top:10px;font-family:var(--font-display);color:var(--gold);font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+  @media(max-width:640px){.po-wrap{grid-template-columns:1fr}.po-final{order:3}}
   .fx-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .fx-ctrl label{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:700;text-transform:uppercase}
   .fx-ctrl select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 12px;font-size:14px;font-family:var(--font-body)}
@@ -345,10 +359,11 @@
 
   <section class="panel-view active" id="view-liga" role="tabpanel">
     <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Liga</h2>
-      <div class="seg" id="ligaSeg"><button class="on" data-lv="tabla">Tabla</button><button data-lv="fixture">Fixture</button></div>
+      <div class="seg" id="ligaSeg"><button class="on" data-lv="tabla">Tabla</button><button data-lv="fixture">Fixture</button><button data-lv="playoffs">Playoffs</button></div>
     </div>
     <div id="ligaTablaWrap"><div class="table-scroll"><table id="ligaTable"></table></div></div>
     <div id="ligaFixture" style="display:none"></div>
+    <div id="ligaPlayoffs" style="display:none"></div>
     <p class="note"><span>🏆</span><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
   </section>
 
@@ -1391,8 +1406,48 @@ function renderLiga(){
     fEl.innerHTML=h;
     const sel=$("#fxFecha");if(sel)sel.onchange=e=>{fxFilter=e.target.value;renderLiga();};
   }
+  renderPlayoffs();
   $("#ligaTablaWrap").style.display=ligaView==="tabla"?"block":"none";
   fEl.style.display=ligaView==="fixture"?"block":"none";
+  $("#ligaPlayoffs").style.display=ligaView==="playoffs"?"block":"none";
+}
+function renderPlayoffs(){
+  const el=$("#ligaPlayoffs"); if(!el)return;
+  const t=computeStandings();
+  if(t.length<4){el.innerHTML='<p class="note"><span>ℹ️</span><span>Faltan equipos o partidos para armar los playoffs.</span></p>';return;}
+  const isSemi=m=>(m.fecha||"").toLowerCase().includes("semi");
+  const isFinal=m=>{const fe=(m.fecha||"").toLowerCase();return fe.includes("final")&&!fe.includes("semi");};
+  const semis=FIXTURE.filter(isSemi), finals=FIXTURE.filter(isFinal);
+  const findM=(list,a,b)=>list.find(m=>{const set=[m.local.toLowerCase(),m.visitante.toLowerCase()];return set.includes(a.toLowerCase())&&set.includes(b.toLowerCase());});
+  const winnerOf=m=>{if(!m||m.gl==null||m.gv==null)return null;return m.gl>m.gv?m.local:(m.gv>m.gl?m.visitante:null);};
+  const logo=name=>{const sr=logoSrc(name);return sr?`<img class="po-logo" src="${sr}">`:`<span class="po-logo ph">${(name[0]||'?').toUpperCase()}</span>`;};
+  const teamRow=(name,score,win,dim)=>`<div class="po-team ${win?'po-win':''} ${dim?'po-lose':''}">${logo(name)}<span class="po-nm">${name}</span><span class="po-sc">${score==null?'—':score}</span></div>`;
+  // arma una llave a partir de dos equipos esperados + el partido real (si existe)
+  const bracket=(hi,lo,list)=>{
+    const m=findM(list,hi,lo);
+    if(!m) return {teams:[{n:hi},{n:lo}],played:false,winner:null};
+    const wa=winnerOf(m);
+    const A={n:m.local,s:m.gl}, B={n:m.visitante,s:m.gv};
+    return {teams:[A,B],played:m.gl!=null&&m.gv!=null,winner:wa};
+  };
+  const sf1=bracket(t[0].equipo,t[3].equipo,semis);   // 1 vs 4
+  const sf2=bracket(t[1].equipo,t[2].equipo,semis);   // 2 vs 3
+  const f1=sf1.winner, f2=sf2.winner;
+  let fin;
+  if(f1&&f2){ fin=bracket(f1,f2,finals); }
+  else { const m=finals[0]; fin=m?{teams:[{n:m.local,s:m.gl},{n:m.visitante,s:m.gv}],played:m.gl!=null&&m.gv!=null,winner:winnerOf(m)}:{teams:[{n:f1||"Ganador Semi 1"},{n:f2||"Ganador Semi 2"}],played:false,winner:null}; }
+  const champ=fin.winner;
+  const matchCard=(b,cls)=>{
+    const [a,bb]=b.teams;
+    const wname=b.winner?b.winner.toLowerCase():null;
+    const rowFor=x=>{const win=wname&&x.n.toLowerCase()===wname; const dim=b.played&&wname&&!win; return teamRow(x.n,x.s,win,dim);};
+    return `<div class="po-match ${cls||''}">${rowFor(a)}${rowFor(bb)}</div>`;
+  };
+  el.innerHTML=`<div class="po-wrap">
+    <div><div class="po-col-h">Semifinal · 1° vs 4°</div>${matchCard(sf1)}</div>
+    <div class="po-final"><div class="po-col-h" style="color:var(--gold)">Final</div>${matchCard(fin,"po-finalm")}${champ?`<div class="po-champ">🏆 Campeón: ${champ}</div>`:'<div class="po-champ" style="color:var(--muted)">A definir</div>'}</div>
+    <div><div class="po-col-h">Semifinal · 2° vs 3°</div>${matchCard(sf2)}</div>
+  </div>`;
 }
 /* ===== Ajustes de encuadre de fotos (círculo y ficha por separado) ===== */
 const DEF_ADJ_C={z:100,x:50,y:35}, DEF_ADJ_F={z:100,x:50,y:22};
