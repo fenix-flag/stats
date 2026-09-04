@@ -1889,12 +1889,14 @@ function renderPlayer(){
   renderTable($("#plogTable"),PLOG_COLS,rows,null,plogSort,k=>{plogSort=nextSort(plogSort,DEF_PLOG,k);renderPlayer();});
 }
 function renderFotos(){
-  const list=[...playersFor(null)].filter(p=>photoSrc(p.num)).sort((a,b)=>a.num-b.num);
-  if(!list.length){$("#fotoChips").innerHTML="";$("#fotoEditor").innerHTML="<p class='note'><span>ℹ️</span><span>No hay fotos cargadas todavía.</span></p>";return;}
+  const list=[...ROSTER].sort((a,b)=>a.num-b.num);
+  if(!list.length){$("#fotoChips").innerHTML="";$("#fotoEditor").innerHTML="<p class='note'><span>ℹ️</span><span>No hay plantel cargado.</span></p>";if($("#fotoUpload"))$("#fotoUpload").innerHTML="";return;}
   if(fotoSel==null||!list.find(p=>p.num===fotoSel))fotoSel=list[0].num;
-  $("#fotoChips").innerHTML=list.map(p=>`<button class="chip ${p.num===fotoSel?'sel':''}" data-num="${p.num}" title="${p.nombre}"><span class="chip-av"><img src="${photoSrc(p.num)}" style="${pstyle(p.num)}"></span><span class="chip-nm">#${p.num}</span></button>`).join("");
+  $("#fotoChips").innerHTML=list.map(p=>{const ph=photoSrc(p.num);return `<button class="chip ${p.num===fotoSel?'sel':''}" data-num="${p.num}" title="${p.nombre}"><span class="chip-av">${ph?`<img src="${ph}" style="${pstyle(p.num)}">`:`<span class="numonly">${p.num}</span>`}</span><span class="chip-nm">#${p.num}</span></button>`;}).join("");
   $("#fotoChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{fotoSel=+c.dataset.num;renderFotos();});
   const p=ROSTER.find(x=>x.num===fotoSel), ac=adjOf(p.num,"c"), af=adjOf(p.num,"f");
+  const ph0=photoSrc(p.num);
+  if(ph0){
   $("#fotoEditor").innerHTML=`<div class="fed">
     <div class="fed-prev">
       <div><div class="fed-lbl">Círculo</div><div class="fed-circle" data-edit="c"><img src="${photoSrc(p.num)}" style="object-fit:cover;${pstyle(p.num)}"></div>
@@ -1920,6 +1922,9 @@ function renderFotos(){
     r.onchange=()=>{renderRanking();renderPlayer();};
   });
   $("#fedReset").onclick=()=>{delete ADJ[p.num];saveADJ();renderFotos();renderRanking();renderPlayer();};
+  } else {
+  $("#fotoEditor").innerHTML=`<div class="fed"><div class="fed-ctrls"><div class="fed-name">${p.nombre} <small>#${p.num}</small></div><div class="hint">Este jugador todavía no tiene foto. Subila abajo con “Subir foto” y después la encuadrás acá.</div></div></div>`;
+  }
   const opts=[...ROSTER].sort((x,y)=>x.num-y.num).map(pl=>`<option value="${pl.num}">#${pl.num} ${pl.nombre}</option>`).join("");
   $("#fotoUpload").innerHTML=`<div class="upl"><div class="upl-h">📤 Subir foto (con Apps Script)</div>
     <div class="upl-row"><select id="uplNum">${opts}</select><input type="file" id="uplFile" accept="image/*"><button class="btn" id="uplBtn">Subir</button></div>
