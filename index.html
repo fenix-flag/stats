@@ -218,6 +218,17 @@
   .tf-row:last-child{border-bottom:none}
   .tf-lbl{color:var(--muted)} .tf-val{font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
   @media(max-width:560px){.po-semis{grid-template-columns:1fr}.po-side-nm{font-size:13px}}
+  .am-card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+  .am-when{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);text-align:center;margin-bottom:12px}
+  .am-duel{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+  .am-side{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+  .am-logo{width:56px;height:56px;object-fit:contain}
+  .am-logo.ph{display:flex;align-items:center;justify-content:center;background:var(--panel-2);border-radius:12px;font-family:var(--font-display);color:var(--muted);font-size:22px}
+  .am-nm{font-weight:600;font-size:15px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .am-win .am-nm{color:var(--turf);font-weight:800}.am-lose{opacity:.55}
+  .am-mid{text-align:center;font-family:var(--font-display);font-variant-numeric:tabular-nums;display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:8px;font-size:clamp(30px,8vw,40px)}
+  .am-mid.novs{display:block;font-size:22px;color:var(--muted)}
+  .am-dash{color:var(--muted)}
   .fx-ctrl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .fx-ctrl label{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:700;text-transform:uppercase}
   .fx-ctrl select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 12px;font-size:14px;font-family:var(--font-body)}
@@ -384,11 +395,12 @@
 
   <section class="panel-view active" id="view-liga" role="tabpanel">
     <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Liga</h2>
-      <div class="seg" id="ligaSeg"><button class="on" data-lv="tabla">Tabla</button><button data-lv="fixture">Fixture</button><button data-lv="playoffs">Playoffs</button></div>
+      <div class="seg" id="ligaSeg"><button class="on" data-lv="tabla">Tabla</button><button data-lv="fixture">Fixture</button><button data-lv="playoffs">Playoffs</button><button data-lv="amistosos">Amistosos</button></div>
     </div>
     <div id="ligaTablaWrap"><div class="table-scroll"><table id="ligaTable"></table></div></div>
     <div id="ligaFixture" style="display:none"></div>
     <div id="ligaPlayoffs" style="display:none"></div>
+    <div id="ligaAmistosos" style="display:none"></div>
     <p class="note"><span>🏆</span><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
   </section>
 
@@ -1378,7 +1390,8 @@ function loadFixture(csv){
   return FIXTURE.length>0;
 }
 const isPlayoff=fch=>/semi|final|playoff|cuarto|repechaje/i.test(fch||"");
-function playedGames(){return FIXTURE.filter(m=>m.gl!=null&&m.gv!=null&&!isPlayoff(m.fecha));}
+const isAmistoso=m=>/amistoso/i.test((m&&m.instancia)||"")||/amistoso/i.test((m&&m.fecha)||"");
+function playedGames(){return FIXTURE.filter(m=>m.gl!=null&&m.gv!=null&&!isPlayoff(m.fecha)&&!isAmistoso(m));}
 function h2h(an,bn){let aw=0,bw=0;an=an.toLowerCase();bn=bn.toLowerCase();
   playedGames().forEach(m=>{const L=m.local.toLowerCase(),V=m.visitante.toLowerCase();
     if(L===an&&V===bn){if(m.gl>m.gv)aw++;else if(m.gv>m.gl)bw++;}
@@ -1386,7 +1399,7 @@ function h2h(an,bn){let aw=0,bw=0;an=an.toLowerCase();bn=bn.toLowerCase();
   return aw>bw?-1:(bw>aw?1:0);}
 function catOf(team){const p=POSICIONES.find(x=>x.equipo.toLowerCase()===(team||"").toLowerCase());return p?p.categoria:"";}
 function teamHidden(team){return catOf(team).toLowerCase()==="ascenso";}
-function visibleFixture(){return FIXTURE.filter(m=>!teamHidden(m.local)&&!teamHidden(m.visitante));}
+function visibleFixture(){return FIXTURE.filter(m=>!teamHidden(m.local)&&!teamHidden(m.visitante)&&!isAmistoso(m));}
 function computeStandings(){
   const teams={};
   POSICIONES.filter(t=>!teamHidden(t.equipo)).forEach(t=>{teams[t.equipo.toLowerCase()]={equipo:t.equipo,logo:t.logo,g:0,e:0,p:0,pf:0,pc:0};});
@@ -1432,10 +1445,30 @@ function renderLiga(){
     fEl.innerHTML=h;
     const sel=$("#fxFecha");if(sel)sel.onchange=e=>{fxFilter=e.target.value;renderLiga();};
   }
-  renderPlayoffs();
+  renderPlayoffs(); renderAmistosos();
   $("#ligaTablaWrap").style.display=ligaView==="tabla"?"block":"none";
   fEl.style.display=ligaView==="fixture"?"block":"none";
   $("#ligaPlayoffs").style.display=ligaView==="playoffs"?"block":"none";
+  $("#ligaAmistosos").style.display=ligaView==="amistosos"?"block":"none";
+}
+function renderAmistosos(){
+  const el=$("#ligaAmistosos"); if(!el)return;
+  const list=FIXTURE.filter(m=>isAmistoso(m)&&!teamHidden(m.local)&&!teamHidden(m.visitante));
+  if(!list.length){el.innerHTML='<p class="note"><span>🤝</span><span>No hay amistosos cargados. Agregá un partido en el Fixture con <b>Instancia = Amistoso</b>.</span></p>';return;}
+  const fx=(CONFIG.TEAM_NAME||"").toLowerCase();
+  const logo=name=>{const sr=logoSrc(name);return sr?`<img class="am-logo" src="${sr}">`:`<span class="am-logo ph">${(name[0]||'?').toUpperCase()}</span>`;};
+  el.innerHTML=list.map(m=>{
+    const done=m.gl!=null&&m.gv!=null;
+    const win=name=>{if(!done||name.toLowerCase()!==fx)return"";return (name===m.local?(m.gl>m.gv):(m.gv>m.gl))?"am-win":((name===m.local?(m.gl<m.gv):(m.gv<m.gl))?"am-lose":"");};
+    const when=[m.dia,m.hora].filter(Boolean).join(" · ");
+    const mid=done?`<span class="am-n">${m.gl}</span><span class="am-dash">-</span><span class="am-n">${m.gv}</span>`:`<span class="am-vs">VS</span>`;
+    return `<div class="am-card">
+      <div class="am-when">Amistoso${when?` · ${when}`:''}</div>
+      <div class="am-duel">
+        <div class="am-side ${win(m.local)}">${logo(m.local)}<span class="am-nm">${m.local}</span></div>
+        <div class="am-mid ${done?'':'novs'}">${mid}</div>
+        <div class="am-side v ${win(m.visitante)}">${logo(m.visitante)}<span class="am-nm">${m.visitante}</span></div>
+      </div></div>`;}).join("");
 }
 function renderPlayoffs(){
   const el=$("#ligaPlayoffs"); if(!el)return;
