@@ -1501,7 +1501,7 @@ const TEAM_LOGOS={};
 function loadLogoAdj(){try{return JSON.parse(localStorage.getItem("fenixLogoAdj")||"{}")}catch(e){return {};}}
 let LOGO_ADJ=loadLogoAdj();
 function saveLogoAdj(){try{localStorage.setItem("fenixLogoAdj",JSON.stringify(LOGO_ADJ))}catch(e){}}
-function logoSrc(team){const t=(team||"").toLowerCase();const pos=POSICIONES.find(p=>p.equipo.toLowerCase()===t);if(pos&&pos.logo)return pos.logo;return gender==="m"?(TEAM_LOGOS[t]||""):"";}
+function logoSrc(team){const t=(team||"").toLowerCase();const pos=POSICIONES.find(p=>p.equipo.toLowerCase()===t);if(pos&&pos.logo)return pos.logo;if(t==="fenix"){if(TEAM_LOGOS["fenix"])return TEAM_LOGOS["fenix"];const hl=document.querySelector(".team-logo");if(hl&&hl.getAttribute("src"))return hl.getAttribute("src");}return gender==="m"?(TEAM_LOGOS[t]||""):"";}
 function logoAdjOf(t){return Object.assign({z:100,x:50,y:50},LOGO_ADJ[(t||"").toLowerCase()]||{});}
 function logoStyle(t){const a=logoAdjOf(t);return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
 let logoSel=null;
