@@ -1392,7 +1392,8 @@ function loadFixture(csv){
 }
 const isPlayoff=fch=>/semi|final|playoff|cuarto|repechaje/i.test(fch||"");
 const isAmistoso=m=>/amistoso/i.test((m&&m.instancia)||"")||/amistoso/i.test((m&&m.fecha)||"");
-function playedGames(){return FIXTURE.filter(m=>m.gl!=null&&m.gv!=null&&!isPlayoff(m.fecha)&&!isAmistoso(m));}
+const isPlayoffGame=m=>/playoff/i.test((m&&m.instancia)||"")||isPlayoff(m&&m.fecha);
+function playedGames(){return FIXTURE.filter(m=>m.gl!=null&&m.gv!=null&&!isPlayoffGame(m)&&!isAmistoso(m));}
 function h2h(an,bn){let aw=0,bw=0;an=an.toLowerCase();bn=bn.toLowerCase();
   playedGames().forEach(m=>{const L=m.local.toLowerCase(),V=m.visitante.toLowerCase();
     if(L===an&&V===bn){if(m.gl>m.gv)aw++;else if(m.gv>m.gl)bw++;}
