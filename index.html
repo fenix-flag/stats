@@ -1376,7 +1376,8 @@ function loadPosiciones(csv){
   if(!csv)return false;
   let t;try{t=tableFromCSV(csv);}catch(e){return false;}
   const {idx,rows}=t; if(idx["Equipo"]===undefined)return false;
-  POSICIONES=rows.map(r=>({equipo:(r[idx["Equipo"]]||"").trim(),logo:(idx["Logo"]!==undefined?(r[idx["Logo"]]||"").trim():""),categoria:(idx["Categoria"]!==undefined?(r[idx["Categoria"]]||"").trim():"")})).filter(x=>x.equipo);
+  const cCat=idx["Categoria"]!==undefined?idx["Categoria"]:(idx["Categoría"]!==undefined?idx["Categoría"]:undefined);
+  POSICIONES=rows.map(r=>({equipo:(r[idx["Equipo"]]||"").trim(),logo:(idx["Logo"]!==undefined?(r[idx["Logo"]]||"").trim():""),categoria:(cCat!==undefined?(r[cCat]||"").trim():"")})).filter(x=>x.equipo);
   return POSICIONES.length>0;
 }
 function loadFixture(csv){
@@ -1430,8 +1431,11 @@ function standingsTableHTML(t){
 function renderLiga(){
   const wrap=$("#ligaTablaWrap");
   const copa=isCopa(); const groups=copa?groupsOf():[];
+  try{console.log(`[FENIX] torneo="${season}" genero=${gender} tipo="${tipoForCurrent()}" copa=${copa} grupos=[${groups.join(", ")}] equipos=${POSICIONES.length}`);}catch(e){}
   const tabBtn=document.querySelector('#ligaSeg button[data-lv="tabla"]'); if(tabBtn)tabBtn.textContent=(copa&&groups.length)?"Grupos":"Tabla";
-  if(copa&&groups.length){
+  if(copa&&!groups.length){
+    wrap.innerHTML='<p class="note"><span>⚠️</span><span>Este torneo está marcado como <b>Copa</b>, pero no encontré grupos. En la pestaña <b>Equipos</b> de la planilla, columna <b>Categoria</b>, ponele a cada equipo su grupo (<b>Grupo A</b> / <b>Grupo B</b>) y recargá.</span></p>';
+  } else if(copa&&groups.length){
     wrap.innerHTML=groups.map(g=>{
       const tt=computeStandings(x=>catEq(x.categoria,g), m=>catEq(catOf(m.local),g)&&catEq(catOf(m.visitante),g));
       return `<div class="grp-title">${g}</div><div class="table-scroll" style="margin-bottom:14px"><table>${standingsTableHTML(tt)}</table></div>`;
@@ -2126,7 +2130,7 @@ async function loadIndex(indexId){
       temporada:(r[t.idx["Temporada"]]||"").trim(),
       genero:(r[t.idx["Genero"]]||"").trim(),
       categoria:(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():""),
-      tipo:(t.idx["Tipo"]!==undefined?(r[t.idx["Tipo"]]||"").trim():(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():"")),
+      tipo:(t.idx["Tipo"]!==undefined?(r[t.idx["Tipo"]]||"").trim():(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():(t.idx["Categoría"]!==undefined?(r[t.idx["Categoría"]]||"").trim():""))),
       id:(r[t.idx["Planilla"]]||"").trim(),
       activa:(t.idx["Activa"]!==undefined?(r[t.idx["Activa"]]||"").trim().toUpperCase():"SI")
     })).filter(x=>x.temporada&&x.id&&x.activa!=="NO");
