@@ -167,16 +167,17 @@
   .sb-sep{color:var(--muted)}
   .card .csub b{color:var(--turf);font-family:var(--font-display);font-size:17px;font-weight:400}
   .card.def .csub b{color:var(--def)}
-  #ligaTable td,#ligaTable th{text-align:center;padding:14px 10px;font-size:14.5px;font-variant-numeric:tabular-nums}
-  #ligaTable .liga-pos{color:var(--muted);font-family:var(--font-display)}
-  #ligaTable .liga-team{text-align:left;display:flex;align-items:center;gap:12px;font-weight:700;font-size:15px}
+  #ligaTablaWrap td,#ligaTablaWrap th{text-align:center;padding:14px 10px;font-size:14.5px;font-variant-numeric:tabular-nums}
+  #ligaTablaWrap .liga-pos{color:var(--muted);font-family:var(--font-display)}
+  #ligaTablaWrap .liga-team{text-align:left;display:flex;align-items:center;gap:12px;font-weight:700;font-size:15px}
   .liga-logo{width:44px;height:44px;overflow:hidden;flex:none;background:transparent;display:inline-flex;align-items:center;justify-content:center}
   .liga-logo img{width:100%;height:100%;object-fit:contain}
   .liga-logo.ph{font-family:var(--font-display);color:var(--muted);font-size:15px}
-  #ligaTable{border-collapse:collapse;width:100%}
-  #ligaTable tr.liga-me td{background:rgba(255,194,75,.12);color:var(--gold);font-weight:800}
-  #ligaTable tr.liga-me td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
-  #ligaTable tr.liga-me td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+  #ligaTablaWrap table{border-collapse:collapse;width:100%}
+  #ligaTablaWrap tr.liga-me td{background:rgba(255,194,75,.12);color:var(--gold);font-weight:800}
+  #ligaTablaWrap tr.liga-me td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+  #ligaTablaWrap tr.liga-me td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+  .grp-title{font-family:var(--font-display);text-transform:uppercase;font-size:16px;color:var(--gold);margin:4px 0 8px;letter-spacing:.03em}
   .fx-fecha{font-family:var(--font-display);color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px;font-size:15px}
   .fx-game{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:6px}
   .fx-side{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1400,28 +1401,44 @@ function h2h(an,bn){let aw=0,bw=0;an=an.toLowerCase();bn=bn.toLowerCase();
 function catOf(team){const p=POSICIONES.find(x=>x.equipo.toLowerCase()===(team||"").toLowerCase());return p?p.categoria:"";}
 function teamHidden(team){return catOf(team).toLowerCase()==="ascenso";}
 function visibleFixture(){return FIXTURE.filter(m=>!teamHidden(m.local)&&!teamHidden(m.visitante)&&!isAmistoso(m));}
-function computeStandings(){
+const catEq=(a,b)=>(a||"").trim().toLowerCase()===(b||"").trim().toLowerCase();
+function tipoForCurrent(){if(!INDEX)return"";const gg=gender==="f"?"femenino":"masculino";const row=INDEX.find(r=>r.temporada===season&&r.genero.toLowerCase()===gg);return row?(row.tipo||"").trim().toLowerCase():"";}
+function isCopa(){return tipoForCurrent()==="copa";}
+function groupsOf(){const seen=[];POSICIONES.forEach(t=>{const c=(t.categoria||"").trim();if(c&&!seen.some(x=>catEq(x,c)))seen.push(c);});return seen;}
+function computeStandings(teamPred,gamePred){
+  teamPred=teamPred||(t=>!teamHidden(t.equipo));
   const teams={};
-  POSICIONES.filter(t=>!teamHidden(t.equipo)).forEach(t=>{teams[t.equipo.toLowerCase()]={equipo:t.equipo,logo:t.logo,g:0,e:0,p:0,pf:0,pc:0};});
-  playedGames().filter(m=>!teamHidden(m.local)&&!teamHidden(m.visitante)).forEach(m=>{
+  POSICIONES.filter(teamPred).forEach(t=>{teams[t.equipo.toLowerCase()]={equipo:t.equipo,logo:t.logo,g:0,e:0,p:0,pf:0,pc:0};});
+  playedGames().filter(m=>!teamHidden(m.local)&&!teamHidden(m.visitante)&&(!gamePred||gamePred(m))).forEach(m=>{
     [[m.local,m.gl,m.gv],[m.visitante,m.gv,m.gl]].forEach(([name,gf,ga])=>{
-      const k=name.toLowerCase();if(!teams[k])teams[k]={equipo:name,logo:"",g:0,e:0,p:0,pf:0,pc:0};
+      const k=name.toLowerCase();if(!teams[k])return;
       const t=teams[k];t.pf+=gf;t.pc+=ga;if(gf>ga)t.g++;else if(gf<ga)t.p++;else t.e++;});
   });
   const arr=Object.values(teams).map(t=>({...t,j:t.g+t.e+t.p,df:t.pf-t.pc}));
   arr.sort((a,b)=>{if(b.g!==a.g)return b.g-a.g;const h=h2h(a.equipo,b.equipo);if(h)return h;if(b.pf!==a.pf)return b.pf-a.pf;if(a.pc!==b.pc)return a.pc-b.pc;return b.df-a.df;});
   return arr;
 }
+function standingsTableHTML(t){
+  const fx=(CONFIG.TEAM_NAME||"").toLowerCase();
+  const logo=x=>{const src=logoSrc(x.equipo);return src?`<span class="liga-logo"><img src="${src}" style="${logoStyle(x.equipo)}" alt=""></span>`:`<span class="liga-logo ph">${(x.equipo[0]||'?').toUpperCase()}</span>`;};
+  let h='<thead><tr><th>#</th><th style="text-align:left">Equipo</th><th>J</th><th>G</th><th>P</th><th>PF</th><th>PC</th><th>DF</th></tr></thead><tbody>';
+  t.forEach((x,i)=>{const me=x.equipo.toLowerCase()===fx;
+    h+=`<tr class="${me?'liga-me':''}"><td class="liga-pos">${i+1}</td><td class="liga-team">${logo(x)}<span>${x.equipo}</span></td><td>${x.j}</td><td>${x.g}</td><td>${x.p}</td><td>${x.pf}</td><td>${x.pc}</td><td>${x.df>0?'+':''}${x.df}</td></tr>`;});
+  return h+'</tbody>';
+}
 function renderLiga(){
-  const el=$("#ligaTable"), fx=(CONFIG.TEAM_NAME||"").toLowerCase();
-  const t=computeStandings();
-  if(!t.length){$("#ligaTablaWrap").innerHTML='<p class="note"><span>ℹ️</span><span>No hay tabla todavía. Cargá la pestaña <b>Fixture</b> (y <b>Equipos</b> para los logos) y recargá.</span></p>';}
-  else{
-    const logo=x=>{const src=logoSrc(x.equipo);return src?`<span class="liga-logo"><img src="${src}" style="${logoStyle(x.equipo)}" alt=""></span>`:`<span class="liga-logo ph">${(x.equipo[0]||'?').toUpperCase()}</span>`;};
-    let h='<thead><tr><th>#</th><th style="text-align:left">Equipo</th><th>J</th><th>G</th><th>P</th><th>PF</th><th>PC</th><th>DF</th></tr></thead><tbody>';
-    t.forEach((x,i)=>{const me=x.equipo.toLowerCase()===fx;
-      h+=`<tr class="${me?'liga-me':''}"><td class="liga-pos">${i+1}</td><td class="liga-team">${logo(x)}<span>${x.equipo}</span></td><td>${x.j}</td><td>${x.g}</td><td>${x.p}</td><td>${x.pf}</td><td>${x.pc}</td><td>${x.df>0?'+':''}${x.df}</td></tr>`;});
-    h+='</tbody>'; el.innerHTML=h;
+  const wrap=$("#ligaTablaWrap");
+  const copa=isCopa(); const groups=copa?groupsOf():[];
+  const tabBtn=document.querySelector('#ligaSeg button[data-lv="tabla"]'); if(tabBtn)tabBtn.textContent=(copa&&groups.length)?"Grupos":"Tabla";
+  if(copa&&groups.length){
+    wrap.innerHTML=groups.map(g=>{
+      const tt=computeStandings(x=>catEq(x.categoria,g), m=>catEq(catOf(m.local),g)&&catEq(catOf(m.visitante),g));
+      return `<div class="grp-title">${g}</div><div class="table-scroll" style="margin-bottom:14px"><table>${standingsTableHTML(tt)}</table></div>`;
+    }).join("");
+  } else {
+    const t=computeStandings();
+    if(!t.length){wrap.innerHTML='<p class="note"><span>ℹ️</span><span>No hay tabla todavía. Cargá la pestaña <b>Fixture</b> (y <b>Equipos</b> para los logos) y recargá.</span></p>';}
+    else{wrap.innerHTML=`<div class="table-scroll"><table>${standingsTableHTML(t)}</table></div>`;}
   }
   // fixture por fecha
   const fEl=$("#ligaFixture");
@@ -2108,6 +2125,7 @@ async function loadIndex(indexId){
       temporada:(r[t.idx["Temporada"]]||"").trim(),
       genero:(r[t.idx["Genero"]]||"").trim(),
       categoria:(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():""),
+      tipo:(t.idx["Tipo"]!==undefined?(r[t.idx["Tipo"]]||"").trim():(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():"")),
       id:(r[t.idx["Planilla"]]||"").trim(),
       activa:(t.idx["Activa"]!==undefined?(r[t.idx["Activa"]]||"").trim().toUpperCase():"SI")
     })).filter(x=>x.temporada&&x.id&&x.activa!=="NO");
