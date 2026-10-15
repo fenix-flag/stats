@@ -2066,10 +2066,11 @@ function loadDemo(msg){
 }
 function gviz(id,name){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;}
 function extractSheetId(s){s=(s||"").trim();const m=s.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:s.replace(/^https?:\/\/\S*/,"");}
-let loadSeq=0, loadingId=null;
+let loadSeq=0, loadingId=null, lastGood={};
 async function loadFromSheet(id){
   id=extractSheetId(id);
-  if(loadingId===id) return;               // ya se está cargando esa misma planilla
+  if(loadingId===id) return;                                  // ya se está cargando esa misma planilla
+  if(lastGood[id] && (Date.now()-lastGood[id])<2500) return;  // recién cargada OK: evitar recarga redundante
   const mySeq=++loadSeq; loadingId=id;
   setStatus("Cargando desde Google Sheets…","");
   try{
@@ -2096,6 +2097,7 @@ async function loadFromSheet(id){
     // si esta carga volvió TODA vacía pero antes había datos buenos, no pises: restaurá
     const nowData=((OFF.rows&&OFF.rows.length)||(DEF.rows&&DEF.rows.length)||POSICIONES.length||FIXTURE.length);
     if(!nowData && hadData){ OFF=prev.OFF;DEF=prev.DEF;ROSTER=prev.ROSTER;POSICIONES=prev.POSICIONES;FIXTURE=prev.FIXTURE;RESULTS=prev.RESULTS;buildScores();return; }
+    if(nowData) lastGood[id]=Date.now();
     renderAll();
     const gname=gender==="f"?"Femenino":"Masculino";
     if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
