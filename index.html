@@ -2073,7 +2073,7 @@ async function loadFromSheet(id){
   id=extractSheetId(id);
   if(loadingId===id) return;                                  // ya se está cargando esa misma planilla
   if(lastGood[id] && (Date.now()-lastGood[id])<2500) return;  // recién cargada OK: evitar recarga redundante
-  const mySeq=++loadSeq; loadingId=id;
+  const mySeq=++loadSeq; loadingId=id; let renderedOk=false;
   setStatus("Cargando desde Google Sheets…","");
   try{
     const [o,d,p]=await Promise.all([
@@ -2100,13 +2100,17 @@ async function loadFromSheet(id){
     const nowData=((OFF.rows&&OFF.rows.length)||(DEF.rows&&DEF.rows.length)||POSICIONES.length||FIXTURE.length);
     if(nowData){ lastGood[id]=Date.now(); loadedId=id; }
     renderAll();
-    const gname=gender==="f"?"Femenino":"Masculino";
-    if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
-    else setStatus(`Planilla del ${gname} conectada. Todavía no hay partidos cargados en Off — cargá jugadas desde el anotador y aparecen acá.`,"warn");
-    try{localStorage.setItem("fenixSheetId_"+gender,id);}catch(e){}
-  }catch(err){ if(mySeq===loadSeq){ OFF={idx:{},rows:[]};DEF={idx:{},rows:[]};ROSTER=[];POSICIONES=[];FIXTURE=[];try{RESULTS=resultsFromFixture();buildScores();}catch(e){} renderAll();
+    renderedOk=true;
+  }catch(err){ if(!renderedOk && mySeq===loadSeq){ OFF={idx:{},rows:[]};DEF={idx:{},rows:[]};ROSTER=[];POSICIONES=[];FIXTURE=[];try{RESULTS=resultsFromFixture();buildScores();}catch(e){} renderAll();
     setStatus("No se pudo leer la planilla ("+err.message+"). Revisá que esté compartida como \"Cualquiera con el enlace\".","err"); } }
   finally{ if(loadingId===id) loadingId=null; }
+  // Mensaje de estado FUERA del try: un error acá nunca debe borrar lo ya cargado
+  if(renderedOk){ try{
+    const gname=gender==="f"?"Femenino":"Masculino";
+    if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
+    else setStatus(`Planilla del ${gname} conectada. Todavía no hay partidos en Off — cargá jugadas desde el anotador.`,"warn");
+    localStorage.setItem("fenixSheetId_"+gender,id);
+  }catch(e){} }
 }
 function setStatus(m,c){const s=$("#status");s.textContent=m||"";s.className="status "+(c||"");}
 
