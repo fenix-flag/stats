@@ -1376,8 +1376,10 @@ function loadPosiciones(csv){
   if(!csv)return false;
   let t;try{t=tableFromCSV(csv);}catch(e){return false;}
   const {idx,rows}=t; if(idx["Equipo"]===undefined)return false;
-  const cCat=idx["Categoria"]!==undefined?idx["Categoria"]:(idx["Categoría"]!==undefined?idx["Categoría"]:undefined);
-  POSICIONES=rows.map(r=>({equipo:(r[idx["Equipo"]]||"").trim(),logo:(idx["Logo"]!==undefined?(r[idx["Logo"]]||"").trim():""),categoria:(cCat!==undefined?(r[cCat]||"").trim():"")})).filter(x=>x.equipo);
+  const cEq=idx["equipo"]!==undefined?idx["equipo"]:idx["Equipo"];
+  const cLg=idx["logo"];
+  const cCat=idx["categoria"];
+  POSICIONES=rows.map(r=>({equipo:(r[cEq]||"").trim(),logo:(cLg!==undefined?(r[cLg]||"").trim():""),categoria:(cCat!==undefined?(r[cCat]||"").trim():"")})).filter(x=>x.equipo);
   return POSICIONES.length>0;
 }
 function loadFixture(csv){
@@ -1575,7 +1577,8 @@ function parseCSV(text){
   if(f.length||row.length){row.push(f);rows.push(row);}
   return rows.filter(r=>r.some(x=>x.trim()!==""));
 }
-function tableFromCSV(csv){const rows=parseCSV(csv);const head=(rows[0]||[]).map(h=>h.trim());const idx={};head.forEach((h,i)=>idx[h]=i);return {idx,rows:rows.slice(1)};}
+function normKey(h){return (h||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();}
+function tableFromCSV(csv){const rows=parseCSV(csv);const head=(rows[0]||[]).map(h=>h.trim());const idx={};head.forEach((h,i)=>{idx[h]=i;const n=normKey(h);if(idx[n]===undefined)idx[n]=i;});return {idx,rows:rows.slice(1)};}
 
 /* ---------- estado ---------- */
 let OFF={idx:{},rows:[]}, DEF={idx:{},rows:[]}, ROSTER=[];
@@ -2068,9 +2071,9 @@ async function loadFromSheet(id){
   setStatus("Cargando desde Google Sheets…","");
   try{
     const [o,d,p]=await Promise.all([
-      fetch(gviz(id,CONFIG.TAB_OFF)).then(r=>{if(!r.ok)throw new Error("Off HTTP "+r.status);return r.text();}),
-      fetch(gviz(id,CONFIG.TAB_DEF)).then(r=>{if(!r.ok)throw new Error("Def HTTP "+r.status);return r.text();}),
-      fetch(gviz(id,CONFIG.TAB_PLANTEL)).then(r=>{if(!r.ok)throw new Error("Plantel HTTP "+r.status);return r.text();}),
+      fetch(gviz(id,CONFIG.TAB_OFF)).then(r=>r.ok?r.text():"").catch(()=>""),
+      fetch(gviz(id,CONFIG.TAB_DEF)).then(r=>r.ok?r.text():"").catch(()=>""),
+      fetch(gviz(id,CONFIG.TAB_PLANTEL)).then(r=>r.ok?r.text():"").catch(()=>""),
     ]);
     OFF=tableFromCSV(o); DEF=tableFromCSV(d); loadRoster(p);
     let fotos=""; try{ fotos=await fetch(gviz(id,CONFIG.TAB_FOTOS)).then(r=>r.ok?r.text():""); }catch(e){}
@@ -2087,8 +2090,8 @@ async function loadFromSheet(id){
     if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
     else setStatus(`Planilla del ${gname} conectada. Todavía no hay partidos cargados en Off — cargá jugadas desde el anotador y aparecen acá.`,"warn");
     try{localStorage.setItem("fenixSheetId_"+gender,id);}catch(e){}
-  }catch(err){ loadDemo(null);
-    setStatus("No se pudo leer la planilla ("+err.message+"). Mostrando el ejemplo de Legio. Si abrís el HTML descargado, suele funcionar.","err"); }
+  }catch(err){ OFF={idx:{},rows:[]};DEF={idx:{},rows:[]};ROSTER=[];POSICIONES=[];FIXTURE=[];try{RESULTS=resultsFromFixture();buildScores();}catch(e){} renderAll();
+    setStatus("No se pudo leer la planilla ("+err.message+"). Revisá que esté compartida como \"Cualquiera con el enlace\".","err"); }
 }
 function setStatus(m,c){const s=$("#status");s.textContent=m||"";s.className="status "+(c||"");}
 
@@ -2125,14 +2128,15 @@ async function loadIndex(indexId){
     const id=extractSheetId(indexId);
     const csv=await fetch(gviz(id,"Indice")).then(r=>r.ok?r.text():"");
     const t=tableFromCSV(csv);
-    if(t.idx["Temporada"]===undefined||t.idx["Planilla"]===undefined){INDEX=null;return;}
+    const I=t.idx;
+    if(I["temporada"]===undefined||I["planilla"]===undefined){INDEX=null;return;}
     const rows=t.rows.map(r=>({
-      temporada:(r[t.idx["Temporada"]]||"").trim(),
-      genero:(r[t.idx["Genero"]]||"").trim(),
-      categoria:(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():""),
-      tipo:(t.idx["Tipo"]!==undefined?(r[t.idx["Tipo"]]||"").trim():(t.idx["Categoria"]!==undefined?(r[t.idx["Categoria"]]||"").trim():(t.idx["Categoría"]!==undefined?(r[t.idx["Categoría"]]||"").trim():""))),
-      id:(r[t.idx["Planilla"]]||"").trim(),
-      activa:(t.idx["Activa"]!==undefined?(r[t.idx["Activa"]]||"").trim().toUpperCase():"SI")
+      temporada:(r[I["temporada"]]||"").trim(),
+      genero:(r[I["genero"]]||"").trim(),
+      categoria:(I["categoria"]!==undefined?(r[I["categoria"]]||"").trim():""),
+      tipo:(I["tipo"]!==undefined?(r[I["tipo"]]||"").trim():(I["categoria"]!==undefined?(r[I["categoria"]]||"").trim():"")),
+      id:(r[I["planilla"]]||"").trim(),
+      activa:(I["activa"]!==undefined?(r[I["activa"]]||"").trim().toUpperCase():"SI")
     })).filter(x=>x.temporada&&x.id&&x.activa!=="NO");
     INDEX=rows.length?rows:null;
   }catch(e){INDEX=null;}
