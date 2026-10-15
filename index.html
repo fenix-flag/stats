@@ -2079,6 +2079,9 @@ async function loadFromSheet(id){
       fetch(gviz(id,CONFIG.TAB_PLANTEL)).then(r=>r.ok?r.text():"").catch(()=>""),
     ]);
     if(mySeq!==loadSeq){return;}
+    // snapshot de lo que ya había (por si esta carga vuelve vacía por rate-limit)
+    const prev={OFF,DEF,ROSTER:ROSTER.slice?ROSTER.slice():ROSTER,POSICIONES,FIXTURE,RESULTS};
+    const hadData=((prev.OFF&&prev.OFF.rows&&prev.OFF.rows.length)||prev.POSICIONES.length||prev.FIXTURE.length)||0;
     OFF=tableFromCSV(o); DEF=tableFromCSV(d); loadRoster(p);
     let fotos=""; try{ fotos=await fetch(gviz(id,CONFIG.TAB_FOTOS)).then(r=>r.ok?r.text():""); }catch(e){}
     loadFotos(fotos);
@@ -2090,6 +2093,9 @@ async function loadFromSheet(id){
     let resu=""; try{ resu=await fetch(gviz(id,CONFIG.TAB_RESULTADOS)).then(r=>r.ok?r.text():""); }catch(e){}
     if(!loadResultados(resu)){ RESULTS=resultsFromFixture(); buildScores(); }
     if(mySeq!==loadSeq){return;}
+    // si esta carga volvió TODA vacía pero antes había datos buenos, no pises: restaurá
+    const nowData=((OFF.rows&&OFF.rows.length)||(DEF.rows&&DEF.rows.length)||POSICIONES.length||FIXTURE.length);
+    if(!nowData && hadData){ OFF=prev.OFF;DEF=prev.DEF;ROSTER=prev.ROSTER;POSICIONES=prev.POSICIONES;FIXTURE=prev.FIXTURE;RESULTS=prev.RESULTS;buildScores();return; }
     renderAll();
     const gname=gender==="f"?"Femenino":"Masculino";
     if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
