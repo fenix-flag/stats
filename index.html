@@ -2066,8 +2066,11 @@ function loadDemo(msg){
 }
 function gviz(id,name){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;}
 function extractSheetId(s){s=(s||"").trim();const m=s.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:s.replace(/^https?:\/\/\S*/,"");}
+let loadSeq=0, loadingId=null;
 async function loadFromSheet(id){
   id=extractSheetId(id);
+  if(loadingId===id) return;               // ya se está cargando esa misma planilla
+  const mySeq=++loadSeq; loadingId=id;
   setStatus("Cargando desde Google Sheets…","");
   try{
     const [o,d,p]=await Promise.all([
@@ -2075,6 +2078,7 @@ async function loadFromSheet(id){
       fetch(gviz(id,CONFIG.TAB_DEF)).then(r=>r.ok?r.text():"").catch(()=>""),
       fetch(gviz(id,CONFIG.TAB_PLANTEL)).then(r=>r.ok?r.text():"").catch(()=>""),
     ]);
+    if(mySeq!==loadSeq){return;}
     OFF=tableFromCSV(o); DEF=tableFromCSV(d); loadRoster(p);
     let fotos=""; try{ fotos=await fetch(gviz(id,CONFIG.TAB_FOTOS)).then(r=>r.ok?r.text():""); }catch(e){}
     loadFotos(fotos);
@@ -2085,13 +2089,15 @@ async function loadFromSheet(id){
     // Resultados: primero el Fixture (fuente única); si hay pestaña Resultados vieja, esa manda (compatibilidad).
     let resu=""; try{ resu=await fetch(gviz(id,CONFIG.TAB_RESULTADOS)).then(r=>r.ok?r.text():""); }catch(e){}
     if(!loadResultados(resu)){ RESULTS=resultsFromFixture(); buildScores(); }
+    if(mySeq!==loadSeq){return;}
     renderAll();
     const gname=gender==="f"?"Femenino":"Masculino";
     if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
     else setStatus(`Planilla del ${gname} conectada. Todavía no hay partidos cargados en Off — cargá jugadas desde el anotador y aparecen acá.`,"warn");
     try{localStorage.setItem("fenixSheetId_"+gender,id);}catch(e){}
-  }catch(err){ OFF={idx:{},rows:[]};DEF={idx:{},rows:[]};ROSTER=[];POSICIONES=[];FIXTURE=[];try{RESULTS=resultsFromFixture();buildScores();}catch(e){} renderAll();
-    setStatus("No se pudo leer la planilla ("+err.message+"). Revisá que esté compartida como \"Cualquiera con el enlace\".","err"); }
+  }catch(err){ if(mySeq===loadSeq){ OFF={idx:{},rows:[]};DEF={idx:{},rows:[]};ROSTER=[];POSICIONES=[];FIXTURE=[];try{RESULTS=resultsFromFixture();buildScores();}catch(e){} renderAll();
+    setStatus("No se pudo leer la planilla ("+err.message+"). Revisá que esté compartida como \"Cualquiera con el enlace\".","err"); } }
+  finally{ if(loadingId===id) loadingId=null; }
 }
 function setStatus(m,c){const s=$("#status");s.textContent=m||"";s.className="status "+(c||"");}
 
