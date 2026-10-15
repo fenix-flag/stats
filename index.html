@@ -2061,12 +2061,14 @@ function renderAll(){
    CARGA
    ============================================================ */
 function loadDemo(msg){
+  // Si ya está cargada la planilla correcta del género actual, ignorar un loadDemo espurio (no pisar los datos buenos)
+  try{ if(msg===null && loadedId && loadedId===extractSheetId(idOf(gender))) return; }catch(e){}
   OFF=tableFromCSV(DEMO_OFF); DEF=tableFromCSV(DEMO_DEF); loadRoster(DEMO_PLANTEL); loadFotos(""); RESULTS=defaultResults(); buildScores(); POSICIONES=[]; FIXTURE=[];
   renderAll(); if(msg)setStatus(msg,"warn");
 }
 function gviz(id,name){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;}
 function extractSheetId(s){s=(s||"").trim();const m=s.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:s.replace(/^https?:\/\/\S*/,"");}
-let loadSeq=0, loadingId=null, lastGood={};
+let loadSeq=0, loadingId=null, lastGood={}, loadedId=null;
 async function loadFromSheet(id){
   id=extractSheetId(id);
   if(loadingId===id) return;                                  // ya se está cargando esa misma planilla
@@ -2080,24 +2082,23 @@ async function loadFromSheet(id){
       fetch(gviz(id,CONFIG.TAB_PLANTEL)).then(r=>r.ok?r.text():"").catch(()=>""),
     ]);
     if(mySeq!==loadSeq){return;}
-    // snapshot de lo que ya había (por si esta carga vuelve vacía por rate-limit)
-    const prev={OFF,DEF,ROSTER:ROSTER.slice?ROSTER.slice():ROSTER,POSICIONES,FIXTURE,RESULTS};
-    const hadData=((prev.OFF&&prev.OFF.rows&&prev.OFF.rows.length)||prev.POSICIONES.length||prev.FIXTURE.length)||0;
-    OFF=tableFromCSV(o); DEF=tableFromCSV(d); loadRoster(p);
+    const sameSheet=(loadedId===id);  // ¿es una recarga de la misma planilla?
+    // Off/Def/Plantel: si es la misma planilla y una vuelve vacía, conservo la anterior
+    if(o.trim()||!sameSheet) OFF=tableFromCSV(o);
+    if(d.trim()||!sameSheet) DEF=tableFromCSV(d);
+    if(p.trim()||!sameSheet) loadRoster(p);
     let fotos=""; try{ fotos=await fetch(gviz(id,CONFIG.TAB_FOTOS)).then(r=>r.ok?r.text():""); }catch(e){}
-    loadFotos(fotos);
+    if(fotos.trim()||!sameSheet) loadFotos(fotos);
     let posi=""; try{ posi=await fetch(gviz(id,CONFIG.TAB_POSICIONES)).then(r=>r.ok?r.text():""); }catch(e){}
-    if(!loadPosiciones(posi)){ try{ const p2=await fetch(gviz(id,"Posiciones")).then(r=>r.ok?r.text():""); loadPosiciones(p2); }catch(e){} }
+    if(posi.trim()||!sameSheet){ if(!loadPosiciones(posi)){ try{ const p2=await fetch(gviz(id,"Posiciones")).then(r=>r.ok?r.text():""); if(p2.trim()||!sameSheet)loadPosiciones(p2); }catch(e){} } }
     let fixt=""; try{ fixt=await fetch(gviz(id,CONFIG.TAB_FIXTURE)).then(r=>r.ok?r.text():""); }catch(e){}
-    loadFixture(fixt);
+    if(fixt.trim()||!sameSheet) loadFixture(fixt);
     // Resultados: primero el Fixture (fuente única); si hay pestaña Resultados vieja, esa manda (compatibilidad).
     let resu=""; try{ resu=await fetch(gviz(id,CONFIG.TAB_RESULTADOS)).then(r=>r.ok?r.text():""); }catch(e){}
     if(!loadResultados(resu)){ RESULTS=resultsFromFixture(); buildScores(); }
     if(mySeq!==loadSeq){return;}
-    // si esta carga volvió TODA vacía pero antes había datos buenos, no pises: restaurá
     const nowData=((OFF.rows&&OFF.rows.length)||(DEF.rows&&DEF.rows.length)||POSICIONES.length||FIXTURE.length);
-    if(!nowData && hadData){ OFF=prev.OFF;DEF=prev.DEF;ROSTER=prev.ROSTER;POSICIONES=prev.POSICIONES;FIXTURE=prev.FIXTURE;RESULTS=prev.RESULTS;buildScores();return; }
-    if(nowData) lastGood[id]=Date.now();
+    if(nowData){ lastGood[id]=Date.now(); loadedId=id; }
     renderAll();
     const gname=gender==="f"?"Femenino":"Masculino";
     if(games().length) setStatus(`✓ ${games().length} partido(s) cargados (${gname}).`,"ok");
