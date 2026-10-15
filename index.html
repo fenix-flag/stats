@@ -1452,6 +1452,7 @@ function renderLiga(){
   if(!visibleFixture().length){fEl.innerHTML='<p class="note"><span>ℹ️</span><span>No hay fixture cargado.</span></p>';}
   else{
     const FXV=visibleFixture();
+    const fx=(CONFIG.TEAM_NAME||"").toLowerCase();
     const fechas=[];FXV.forEach(m=>{if(!fechas.includes(m.fecha))fechas.push(m.fecha);});
     if(fxFilter!=="__all__"&&!fechas.includes(fxFilter))fxFilter="__all__";
     let h=`<div class="fx-ctrl"><label>Fecha</label><select id="fxFecha"><option value="__all__">Todas</option>${fechas.map(ff=>`<option value="${ff}" ${fxFilter===ff?'selected':''}>${ff||'—'}</option>`).join("")}</select></div>`;
