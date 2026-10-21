@@ -6,14 +6,16 @@
 <title>FENIX · Stats Flag 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0E0F12">
 <style>
   :root{
-    --bg:#0E1124;--panel:#171B36;--panel-2:#1F2547;--line:#2A3160;
-    --ink:#EEF1FF;--muted:#8E97C6;--turf:#37D18B;--gold:#FFC24B;--flag:#FF5B7B;
-    --off:#37D18B;--def:#8E7BFF;
-    --font-display:'Anton','Arial Narrow',sans-serif;
-    --font-body:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --bg:#0E0F12;--panel:#16171B;--panel-2:#1C1D22;--line:#26282E;
+    --ink:#F4F2EE;--muted:#9C9AA0;--turf:#4ADE80;--gold:#F97316;--flag:#F87171;
+    --off:#F97316;--def:#B8B2F5;--accent:#F97316;--accent-ink:#FDBA74;--accent-soft:#2A1A0E;--me:#1C1510;
+    --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+    --font-body:'Barlow',system-ui,-apple-system,Segoe UI,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box} html,body{margin:0;padding:0}
   body{background:radial-gradient(1200px 500px at 50% -10%,#1a2050 0%,rgba(26,32,80,0) 60%),var(--bg);
@@ -299,6 +301,73 @@
   .pf-loghead{font-family:var(--font-display);font-weight:400;text-transform:uppercase;font-size:16px;margin:20px 0 10px}
   @media(max-width:720px){.pf-grids{grid-template-columns:1fr}.pf-reads{width:100%;justify-content:space-between}.pf-head{justify-content:center;text-align:center}.pf-photo{width:180px;height:250px}.pf-id{text-align:center}.pf-badges{justify-content:center}}
   @media(prefers-reduced-motion:reduce){.panel-view.active{animation:none}}
+
+  /* =====================================================================
+     ESTILO ESTADIO (mismo sistema que el Panel Central)
+     ===================================================================== */
+  body{background:var(--bg)}
+  .wrap{max-width:1240px;padding:28px 24px 72px}
+  .team-name,.readout .v,.section-head h2,.pod .pos,.pod .nm,.pod .val,.pod-av .n,.rk-av .n,.rk .rk-num,.gender-seg button,#seasonSel,.fed-name,.card .v,.sb-logo.ph,.sb-score,.card .csub b,#ligaTablaWrap .liga-pos,.liga-logo.ph,.grp-title,.fx-fecha,.po-logo.ph,.po-score,.po-champtag,.tf-name,.tf-colhd,.am-logo.ph,.am-mid,.fx-s,.card.result .rv,.chip-av .numonly,.pf-photo.pf-ph,.pf-num,.pf-name,.pf-read b,.pf-grid h3,.pf-loghead{font-weight:800}
+  .board,.pod,.table-scroll,.card,.seg,.seg button,.gender-seg,.gender-seg button,#seasonSel,select,.search,.fx-game,.po-match,.tf-card,.tf-col,.am-card,.note,.cfg input,.btn,.pf-head,.pf-photo,.pf-grid,.pf-read,.upl,.fed,.sb-logo.ph,.po-logo.ph,.am-logo.ph,.readout,.pf-badge{border-radius:4px}
+  .board{background:var(--panel);padding:28px;border-radius:0;clip-path:polygon(0 0,100% 0,100% calc(100% - 28px),calc(100% - 28px) 100%,0 100%)}
+  .board::before{background:var(--accent);height:4px;opacity:1}
+  .eyebrow{font-family:var(--font-mono);color:var(--accent-ink);letter-spacing:.12em;font-size:12px}
+  .team-name{font-size:clamp(46px,8vw,84px);line-height:.92;letter-spacing:.01em}
+  .team-name span{color:var(--accent)}
+  .season-tag{font-family:var(--font-display);font-size:18px;text-transform:uppercase;letter-spacing:.05em}
+  .readouts{gap:8px}
+  .readout{background:var(--bg);border:1px solid var(--line);padding:16px 18px}
+  @media(max-width:720px){.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:none;padding:0 14px}}
+  @media(max-width:560px){.section-head{flex-wrap:nowrap}.section-head h2{font-size:24px}.wrap{padding:16px 16px 56px}.board{padding:20px}}
+  .readout .k{font-family:var(--font-display);font-size:15px;letter-spacing:.08em;font-weight:600}
+  .readout .v{font-family:var(--font-mono);font-weight:700;color:var(--ink);font-size:36px}
+  .readout .v.small{font-family:var(--font-display);font-size:24px}
+  .tabs{gap:4px;margin:28px 0 22px;border-bottom:1px solid var(--line)}
+  .tab{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;margin-bottom:-1px;min-height:48px;
+    font-family:var(--font-display);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:0 18px}
+  .tab:hover{border-color:transparent;color:var(--ink)}
+  .tab[aria-selected="true"]{background:transparent;color:var(--ink);border-bottom-color:var(--accent)}
+  .tab:focus-visible,.seg button:focus-visible,select:focus-visible,.search:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .section-head h2{font-size:30px;letter-spacing:.02em}
+  .flag-tail{background:var(--accent)}
+  .seg{padding:3px;background:var(--bg);border-color:var(--line)}
+  .seg button{font-family:var(--font-display);font-size:16px;text-transform:uppercase;letter-spacing:.04em;padding:0 16px;min-height:40px}
+  #ligaSeg button.on{background:var(--ink);color:var(--bg)}
+  .gender-seg{background:var(--bg)}
+  .gender-seg button{min-height:40px;font-size:16px}
+  .gender-seg button.on{background:var(--accent);color:var(--bg)}
+  .gender-seg button.on.f{background:var(--ink);color:var(--bg)}
+  #seasonSel,select{background-color:var(--bg);min-height:44px}
+  .search{background:var(--bg);min-height:44px}
+  .pod,.po-match,.tf-card,.am-card,.pf-head,.fed{background:var(--panel)}
+  .pod.p1{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .pod.p1 .pos,.pod.p1 .val{color:var(--accent)}
+  .pod-av,.pf-photo,.fed-rect{background:var(--panel-2)}
+  .pf-head::before{background:var(--accent)}
+  .pf-badge{background:var(--accent-soft);color:var(--accent-ink);border-color:rgba(249,115,22,.35)}
+  .pf-read,.tf-col{background:var(--bg)}
+  .chip.sel .chip-av{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  .chip.sel .chip-nm{color:var(--accent-ink)}
+  .m1{background:var(--accent)}
+  .bar,.rk .fill{background:var(--accent)}
+  thead th{font-family:var(--font-display);font-size:14px;letter-spacing:.08em;font-weight:600}
+  thead th .car{color:var(--accent)}
+  tbody tr{border-top:1px solid var(--line)}
+  tr.total td,tr.total td:first-child{background:var(--accent-soft);color:var(--accent-ink)}
+  #ligaTablaWrap tr.liga-me td{background:var(--me);color:var(--ink)}
+  #ligaTablaWrap tr.liga-me td:first-child,#ligaTablaWrap tr.liga-me td:last-child{border-radius:0}
+  .fx-game.fx-me{background:var(--me);border-color:rgba(249,115,22,.35)}
+  .po-match.po-finalm{background:var(--me);border-color:var(--accent)}
+  .card .v{color:var(--off)}
+  .card .csub b{color:var(--off)}
+  .tf-colhd.o,.pf-rlabel.o,.pf-grid.o h3{color:var(--off)}
+  .card.result .rv{font-size:30px}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent)}
+  .btn{background:var(--accent);color:var(--bg);font-family:var(--font-display);font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;min-height:44px}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .cfg input{background:var(--bg);min-height:44px}
+  .panel-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600}
+  footer{font-family:var(--font-mono);letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -322,7 +391,6 @@
     <button class="tab" role="tab" aria-selected="false" data-view="partido">Por partido</button>
     <button class="tab" role="tab" aria-selected="false" data-view="jugador">Por jugador</button>
     <button class="tab" role="tab" aria-selected="false" data-view="ranking">Ranking</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="fotos">Fotos</button>
     <button class="tab" role="tab" aria-selected="false" data-view="datos">Datos</button>
   </div>
 
@@ -332,10 +400,10 @@
       <div class="seg" id="segSeason">
         <button class="off" data-side="off" aria-pressed="true">Ofensiva</button>
         <button class="def" data-side="def" aria-pressed="false">Defensiva</button></div>
-      <input class="search" id="seasonSearch" type="search" placeholder="🔍 Buscar jugador o número…" style="flex:1;min-width:180px"></div>
+      <input class="search" id="seasonSearch" type="search" placeholder="Buscar jugador o número…" style="flex:1;min-width:180px"></div>
     <div id="teamCard"></div>
     <div class="table-scroll"><table id="seasonTable"></table></div>
-    <p class="note"><span>ℹ️</span><span>Tocá un encabezado para ordenar. Todo sale del play-by-play de tu planilla; abajo, la ficha con el total de FENIX.</span></p>
+    <p class="note"><span>Tocá un encabezado para ordenar. Todo sale del play-by-play de tu planilla; abajo, la ficha con el total de FENIX.</span></p>
   </section>
 
   <section class="panel-view" id="view-ranking" role="tabpanel">
@@ -386,7 +454,7 @@
         <button class="def" data-side="def" aria-pressed="false">Defensiva</button></div>
       <label for="gameSel" style="margin-left:4px">Partido</label><select id="gameSel"></select></div>
     <div class="cards" id="gameCards"></div>
-    <div class="tablebar"><input class="search" id="gameSearch" type="search" placeholder="🔍 Buscar jugador o número…"></div>
+    <div class="tablebar"><input class="search" id="gameSearch" type="search" placeholder="Buscar jugador o número…"></div>
     <div class="table-scroll"><table id="gameTable"></table></div>
   </section>
 
@@ -404,16 +472,19 @@
     <div id="ligaFixture" style="display:none"></div>
     <div id="ligaPlayoffs" style="display:none"></div>
     <div id="ligaAmistosos" style="display:none"></div>
-    <p class="note"><span>🏆</span><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
+    <p class="note"><span>La tabla se calcula sola desde la pestaña <b>Fixture</b>. Desempate: 1) mano a mano, 2) puntos a favor, 3) menos puntos en contra. Los logos salen de la pestaña <b>Equipos</b>.</span></p>
   </section>
 
   <section class="panel-view" id="view-fotos" role="tabpanel">
-    <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Editar fotos</h2></div>
-    <p class="note"><span>🎨</span><span>Elegí un jugador y ajustá <b>zoom</b> y <b>posición</b> hasta que quede bien encuadrado. Los cambios se aplican al instante en toda la app y quedan guardados en este navegador.</span></p>
+    <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Fotos y logos</h2></div>
+    <p class="note"><span>Las fotos de los jugadores y los logos de los equipos ahora se cargan y encuadran en el <a class="panel-link" href="https://fenix-flag.github.io/panel/#/biblioteca">Panel Central</a>.</span></p>
+    <div hidden>
+    <p class="note"><span>Elegí un jugador y ajustá <b>zoom</b> y <b>posición</b> hasta que quede bien encuadrado. Los cambios se aplican al instante en toda la app y quedan guardados en este navegador.</span></p>
     <div class="chips" id="fotoChips"></div>
     <div id="fotoEditor"></div>
     <div id="fotoUpload"></div>
     <div id="logoEditor"></div>
+    </div>
   </section>
 
   <section class="panel-view" id="view-datos" role="tabpanel">
@@ -421,12 +492,12 @@
     <p class="note"><span>1.</span><span>En la planilla: <b>Compartir → Acceso general → Cualquier persona con el enlace → Lector</b>. (Así la app puede leerla.)</span></p>
     <p class="note"><span>2.</span><span>Pegá el <b>link completo</b> (o el ID) de la planilla y tocá <b>Cargar</b>. Se leen las pestañas <b>Off</b>, <b>Def</b>, <b>Plantel</b> y <b>Resultados</b>.</span></p>
     <p class="note"><span>3.</span><span>Los marcadores (V/D, puntos a favor/en contra y récord) salen de la pestaña <b>Resultados</b> (Partido, Rival, PF, PA). Para un partido nuevo, agregá una fila ahí.</span></p>
-    <div class="cfg-lbl">🔵 Planilla Masculino</div>
+    <div class="cfg-lbl">Planilla Masculino</div>
     <div class="cfg">
       <input id="sheetId" type="text" placeholder="Link o ID de la planilla del Masculino" spellcheck="false">
       <button class="btn" id="loadBtn">Cargar</button>
     </div>
-    <div class="cfg-lbl">🟣 Planilla Femenino</div>
+    <div class="cfg-lbl">Planilla Femenino</div>
     <div class="cfg">
       <input id="sheetIdF" type="text" placeholder="Link o ID de la planilla del Femenino" spellcheck="false">
       <button class="btn" id="loadBtnF">Cargar</button>
@@ -434,10 +505,10 @@
     <div class="cfg" style="margin-top:2px"><button class="btn ghost" id="demoBtn">Ver ejemplo (Legio)</button></div>
     <div class="status" id="status"></div>
     <details><summary>¿No carga en la vista previa?</summary>
-      <p class="note" style="margin-top:10px"><span>💡</span><span>Algunos entornos bloquean pedidos externos en el preview. Descargá este HTML y abrilo en tu navegador (o subilo a un hosting): desde ahí lee la planilla sin problema.</span></p></details>
+      <p class="note" style="margin-top:10px"><span>Algunos entornos bloquean pedidos externos en el preview. Descargá este HTML y abrilo en tu navegador (o subilo a un hosting): desde ahí lee la planilla sin problema.</span></p></details>
   </section>
 
-  <footer>Un solo archivo para toda la temporada · la página hace el rollup, vos solo cargás jugadas.</footer>
+  <footer>FENIX · Stats · Fotos, torneos y fixture se administran en el <a class="panel-link" href="https://fenix-flag.github.io/panel/">Panel Central</a></footer>
 </div>
 
 <script>
@@ -1439,7 +1510,7 @@ function renderLiga(){
   try{console.log(`[FENIX] torneo="${season}" genero=${gender} tipo="${tipoForCurrent()}" copa=${copa} grupos=[${groups.join(", ")}] equipos=${POSICIONES.length}`);}catch(e){}
   const tabBtn=document.querySelector('#ligaSeg button[data-lv="tabla"]'); if(tabBtn)tabBtn.textContent=(copa&&groups.length)?"Grupos":"Tabla";
   if(copa&&!groups.length){
-    wrap.innerHTML='<p class="note"><span>⚠️</span><span>Este torneo está marcado como <b>Copa</b>, pero no encontré grupos. En la pestaña <b>Equipos</b> de la planilla, columna <b>Categoria</b>, ponele a cada equipo su grupo (<b>Grupo A</b> / <b>Grupo B</b>) y recargá.</span></p>';
+    wrap.innerHTML='<p class="note"><span>Este torneo está marcado como <b>Copa</b>, pero no encontré grupos. En la pestaña <b>Equipos</b> de la planilla, columna <b>Categoria</b>, ponele a cada equipo su grupo (<b>Grupo A</b> / <b>Grupo B</b>) y recargá.</span></p>';
   } else if(copa&&groups.length){
     wrap.innerHTML=groups.map(g=>{
       const tt=computeStandings(x=>catEq(x.categoria,g), m=>catEq(catOf(m.local),g)&&catEq(catOf(m.visitante),g));
@@ -1447,12 +1518,12 @@ function renderLiga(){
     }).join("");
   } else {
     const t=computeStandings();
-    if(!t.length){wrap.innerHTML='<p class="note"><span>ℹ️</span><span>No hay tabla todavía. Cargá la pestaña <b>Fixture</b> (y <b>Equipos</b> para los logos) y recargá.</span></p>';}
+    if(!t.length){wrap.innerHTML='<p class="note"><span>No hay tabla todavía. Cargá la pestaña <b>Fixture</b> (y <b>Equipos</b> para los logos) y recargá.</span></p>';}
     else{wrap.innerHTML=`<div class="table-scroll"><table>${standingsTableHTML(t)}</table></div>`;}
   }
   // fixture por fecha
   const fEl=$("#ligaFixture");
-  if(!visibleFixture().length){fEl.innerHTML='<p class="note"><span>ℹ️</span><span>No hay fixture cargado.</span></p>';}
+  if(!visibleFixture().length){fEl.innerHTML='<p class="note"><span>No hay fixture cargado.</span></p>';}
   else{
     const FXV=visibleFixture();
     const fx=(CONFIG.TEAM_NAME||"").toLowerCase();
@@ -1482,7 +1553,7 @@ function renderLiga(){
 function renderAmistosos(){
   const el=$("#ligaAmistosos"); if(!el)return;
   const list=FIXTURE.filter(m=>isAmistoso(m)&&!teamHidden(m.local)&&!teamHidden(m.visitante));
-  if(!list.length){el.innerHTML='<p class="note"><span>🤝</span><span>No hay amistosos cargados. Agregá un partido en el Fixture con <b>Instancia = Amistoso</b>.</span></p>';return;}
+  if(!list.length){el.innerHTML='<p class="note"><span>No hay amistosos cargados. Agregá un partido en el Fixture con <b>Instancia = Amistoso</b>.</span></p>';return;}
   const fx=(CONFIG.TEAM_NAME||"").toLowerCase();
   const logo=name=>{const sr=logoSrc(name);return sr?`<img class="am-logo" src="${sr}">`:`<span class="am-logo ph">${(name[0]||'?').toUpperCase()}</span>`;};
   el.innerHTML=list.map(m=>{
@@ -1501,7 +1572,7 @@ function renderAmistosos(){
 function renderPlayoffs(){
   const el=$("#ligaPlayoffs"); if(!el)return;
   const t=computeStandings();
-  if(t.length<4){el.innerHTML='<p class="note"><span>ℹ️</span><span>Faltan equipos o partidos para armar los playoffs.</span></p>';return;}
+  if(t.length<4){el.innerHTML='<p class="note"><span>Faltan equipos o partidos para armar los playoffs.</span></p>';return;}
   const isSemi=m=>(m.fecha||"").toLowerCase().includes("semi");
   const isFinal=m=>{const fe=(m.fecha||"").toLowerCase();return fe.includes("final")&&!fe.includes("semi");};
   const semis=FIXTURE.filter(isSemi), finals=FIXTURE.filter(isFinal);
@@ -1531,7 +1602,7 @@ function renderPlayoffs(){
     const side=x=>`<div class="po-side ${cls(x)}">${logo(x.n)}<div class="po-side-nm">${x.n}</div></div>`;
     const played=b.teams[0].s!=null;
     const scoreHtml=played?`<span class="po-n">${b.teams[0].s}</span><span class="po-dash">-</span><span class="po-n">${b.teams[1].s}</span>`:`<span class="po-vs">vs</span>`;
-    return `<div class="po-duel">${side(a)}<div class="po-mid ${big?'big':''}"><div class="po-score">${scoreHtml}</div>${big&&champ?`<div class="po-champtag">🏆 Campeón</div>`:''}</div>${side(bb)}</div>`;
+    return `<div class="po-duel">${side(a)}<div class="po-mid ${big?'big':''}"><div class="po-score">${scoreHtml}</div>${big&&champ?`<div class="po-champtag">Campeón</div>`:''}</div>${side(bb)}</div>`;
   };
   el.innerHTML=`<div class="po-sec">Semifinales</div>
     <div class="po-semis">
@@ -1542,13 +1613,13 @@ function renderPlayoffs(){
     <div class="po-match po-finalm">${duel(fin,true)}${!champ?'<div class="po-champtag" style="color:var(--muted);text-align:center;margin-top:8px">A definir</div>':''}</div>`;
 }
 /* ===== Ajustes de encuadre de fotos (círculo y ficha por separado) ===== */
-const DEF_ADJ_C={z:100,x:50,y:35}, DEF_ADJ_F={z:100,x:50,y:22};
+const DEF_ADJ_C={z:100,x:50,y:50}, DEF_ADJ_F={z:100,x:50,y:30};
 function loadADJ(){try{return JSON.parse(localStorage.getItem('fenixPhotoAdj')||'{}')}catch(e){return {};}}
 let ADJ=loadADJ();
 function saveADJ(){try{localStorage.setItem('fenixPhotoAdj',JSON.stringify(ADJ))}catch(e){}}
 let PHOTO_URL={}, SHEET_ADJ={};
 function photoSrc(n){return PHOTO_URL[n]||(gender==="m"?PHOTOS[n]:null)||null;}
-function normAdj(n){const a=ADJ[n];if(!a)return null;if(a.c||a.f)return a;return {c:{z:a.z,x:a.x,y:a.y}};}
+function normAdj(n){return null;const a=ADJ[n];if(!a)return null;if(a.c||a.f)return a;return {c:{z:a.z,x:a.x,y:a.y}};}
 function adjOf(n,which){which=which||"c";const def=which==="f"?DEF_ADJ_F:DEF_ADJ_C;const a=normAdj(n)||{};return Object.assign({},def,a[which]||{});}
 function setAdj(n,which,patch,light){const cur=normAdj(n)||{};cur[which]=Object.assign({},adjOf(n,which),patch);ADJ[n]=cur;saveADJ();
   const styC="object-fit:cover;"+pstyle(n),styF="object-fit:cover;"+pstyleF(n);
@@ -1563,7 +1634,7 @@ function loadLogoAdj(){try{return JSON.parse(localStorage.getItem("fenixLogoAdj"
 let LOGO_ADJ=loadLogoAdj();
 function saveLogoAdj(){try{localStorage.setItem("fenixLogoAdj",JSON.stringify(LOGO_ADJ))}catch(e){}}
 function logoSrc(team){const t=(team||"").toLowerCase();const pos=POSICIONES.find(p=>p.equipo.toLowerCase()===t);if(pos&&pos.logo)return pos.logo;if(t==="fenix"){if(TEAM_LOGOS["fenix"])return TEAM_LOGOS["fenix"];const hl=document.querySelector(".team-logo");if(hl&&hl.getAttribute("src"))return hl.getAttribute("src");}return gender==="m"?(TEAM_LOGOS[t]||""):"";}
-function logoAdjOf(t){return Object.assign({z:100,x:50,y:50},LOGO_ADJ[(t||"").toLowerCase()]||{});}
+function logoAdjOf(t){return {z:100,x:50,y:50};}
 function logoStyle(t){const a=logoAdjOf(t);return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
 let logoSel=null;
 let fotoSel=null;
@@ -1921,13 +1992,13 @@ function renderPlayer(){
   renderPlayerChips();
   const p=ROSTER.find(x=>x.num===selectedPlayer);
   const box=$("#playerProfile");
-  if(!p){box.innerHTML="<p class='note'><span>ℹ️</span><span>Todavía no hay jugadores con acción cargada.</span></p>";return;}
+  if(!p){box.innerHTML="<p class='note'><span>Todavía no hay jugadores con acción cargada.</span></p>";return;}
   const {fo,fd}=scopeRows(null), s=combine(fo,fd,p), active=playersFor(null);
   const rankOf=k=>[...active].sort((a,b)=>b[k]-a[k]).findIndex(x=>x.num===p.num)+1;
   const ph=photoSrc(p.num);
   const avatar=ph?`<div class="pf-photo"><img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
   const cats=[["points","Puntos"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
-  const medal=r=>r===1?"🥇":r===2?"🥈":"🥉";
+  const medal=r=>r+"°";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
   const ydsTot=s.passYD+s.ydRec+s.runYD;
   const tdTot=(s.td||0)+(s.pasTD||0);
@@ -1952,7 +2023,7 @@ function renderPlayer(){
 }
 function renderFotos(){
   const list=[...ROSTER].sort((a,b)=>a.num-b.num);
-  if(!list.length){$("#fotoChips").innerHTML="";$("#fotoEditor").innerHTML="<p class='note'><span>ℹ️</span><span>No hay plantel cargado.</span></p>";if($("#fotoUpload"))$("#fotoUpload").innerHTML="";return;}
+  if(!list.length){$("#fotoChips").innerHTML="";$("#fotoEditor").innerHTML="<p class='note'><span>No hay plantel cargado.</span></p>";if($("#fotoUpload"))$("#fotoUpload").innerHTML="";return;}
   if(fotoSel==null||!list.find(p=>p.num===fotoSel))fotoSel=list[0].num;
   $("#fotoChips").innerHTML=list.map(p=>{const ph=photoSrc(p.num);return `<button class="chip ${p.num===fotoSel?'sel':''}" data-num="${p.num}" title="${p.nombre}"><span class="chip-av">${ph?`<img src="${ph}" style="${pstyle(p.num)}">`:`<span class="numonly">${p.num}</span>`}</span><span class="chip-nm">#${p.num}</span></button>`;}).join("");
   $("#fotoChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{fotoSel=+c.dataset.num;renderFotos();});
@@ -1988,9 +2059,9 @@ function renderFotos(){
   $("#fotoEditor").innerHTML=`<div class="fed"><div class="fed-ctrls"><div class="fed-name">${p.nombre} <small>#${p.num}</small></div><div class="hint">Este jugador todavía no tiene foto. Subila abajo con “Subir foto” y después la encuadrás acá.</div></div></div>`;
   }
   const opts=[...ROSTER].sort((x,y)=>x.num-y.num).map(pl=>`<option value="${pl.num}">#${pl.num} ${pl.nombre}</option>`).join("");
-  $("#fotoUpload").innerHTML=`<div class="upl"><div class="upl-h">📤 Subir foto (con Apps Script)</div>
+  $("#fotoUpload").innerHTML=`<div class="upl"><div class="upl-h">Subir foto (con Apps Script)</div>
     <div class="upl-row"><select id="uplNum">${opts}</select><input type="file" id="uplFile" accept="image/*"><button class="btn" id="uplBtn">Subir</button></div>
-    <div class="status" id="uplMsg">${CONFIG.UPLOAD_URL?"Elegí jugador y foto. Ideal PNG con fondo transparente.":"⚠️ Todavía no configuraste UPLOAD_URL (Apps Script)."}</div></div>`;
+    <div class="status" id="uplMsg">${CONFIG.UPLOAD_URL?"Elegí jugador y foto. Ideal PNG con fondo transparente.":"Todavía no configuraste UPLOAD_URL (Apps Script)."}</div></div>`;
   $("#uplBtn").onclick=uploadPhoto;
   renderLogoEditor();
 }
@@ -2001,7 +2072,7 @@ function renderLogoEditor(){
   if(!logoSel||!teams.find(t=>t.toLowerCase()===logoSel.toLowerCase()))logoSel=teams[0];
   const chip=t=>{const src=logoSrc(t);return `<button class="chip ${t.toLowerCase()===logoSel.toLowerCase()?'sel':''}" data-team="${t}"><span class="chip-av" style="background:var(--panel-2)">${src?`<img src="${src}" style="object-fit:contain;${logoStyle(t)}">`:`<span class="numonly">${t[0]}</span>`}</span><span class="chip-nm">${t}</span></button>`;};
   const a=logoAdjOf(logoSel), src=logoSrc(logoSel);
-  box.innerHTML=`<div class="upl" style="margin-top:16px"><div class="upl-h">🛡️ Editar logos de equipos</div>
+  box.innerHTML=`<div class="upl" style="margin-top:16px"><div class="upl-h">Editar logos de equipos</div>
     <div class="chips">${teams.map(chip).join("")}</div>
     <div class="fed" style="margin-top:12px">
       <div class="fed-prev"><div><div class="fed-lbl">Logo</div><div class="fed-circle" style="border-radius:12px">${src?`<img src="${src}" style="object-fit:contain;${logoStyle(logoSel)}">`:'—'}</div></div></div>
