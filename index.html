@@ -368,6 +368,7 @@
   .cfg input{background:var(--bg);min-height:44px}
   .panel-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600}
   footer{font-family:var(--font-mono);letter-spacing:.06em}
+  .fx-logo.ph{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--panel-2);border-radius:4px;font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -386,7 +387,7 @@
   </div>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" aria-selected="true"  data-view="liga">Liga</button>
+    <button class="tab" role="tab" aria-selected="true"  data-view="liga">Torneo</button>
     <button class="tab" role="tab" aria-selected="false" data-view="temporada">Temporada</button>
     <button class="tab" role="tab" aria-selected="false" data-view="partido">Por partido</button>
     <button class="tab" role="tab" aria-selected="false" data-view="jugador">Por jugador</button>
@@ -1538,7 +1539,7 @@ function renderLiga(){
         const me=m.local.toLowerCase()===fx||m.visitante.toLowerCase()===fx;
         const done=m.gl!=null&&m.gv!=null;
         const clr=(name,gf,ga)=>(name.toLowerCase()!==fx||!done)?"":(gf>ga?"w":(gf<ga?"l":""));
-        const flogo=t=>{const sr=logoSrc(t);return sr?`<img class="fx-logo" src="${sr}">`:'';};
+        const flogo=t=>{const sr=logoSrc(t);return sr?`<img class="fx-logo" src="${sr}" alt="">`:`<span class="fx-logo ph">${((t||'')[0]||'?').toUpperCase()}</span>`;};
         const scoreH=done?`<span class="fx-n">${m.gl}</span><span class="fx-dash">-</span><span class="fx-n">${m.gv}</span>`:'<span class="fx-vs">vs</span>';
         h+=`<div class="fx-game ${me?'fx-me':''}">${m.hora?`<span class="fx-hora">${m.hora}</span>`:''}<div class="fx-duel"><div class="fx-side">${flogo(m.local)}<span class="fx-t ${clr(m.local,m.gl,m.gv)}">${m.local}</span></div><div class="fx-s">${scoreH}</div><div class="fx-side v">${flogo(m.visitante)}<span class="fx-t v ${clr(m.visitante,m.gv,m.gl)}">${m.visitante}</span></div></div></div>`;});});
     fEl.innerHTML=h;
@@ -2273,6 +2274,12 @@ $("#demoBtn").onclick=()=>loadDemo("Mostrando el ejemplo de Legio.");
   if(id){ if(!INDEX){const inp=$("#"+(gender==="f"?"sheetIdF":"sheetId"));if(inp)inp.value=id;} loadFromSheet(id); }
   else{ loadDemo(null); setStatus(gender==="f"?"Cargá la planilla del Femenino en “Datos”.":"Estás viendo el ejemplo. Andá a “Datos” para conectar tu planilla.","warn"); }
 })();
+</script>
+<script>
+document.addEventListener('error',function(e){var img=e.target;if(!(img instanceof HTMLImageElement)||img.classList.contains('team-logo'))return;
+  var cls=['fx-logo','liga-logo','po-logo','am-logo','sb-logo'];var host=img.closest('.liga-logo')||img;var c=cls.find(function(k){return host.classList.contains(k)});if(!c)return;
+  var row=img.closest('.fx-side,.po-side,.am-side,.sb-team,.liga-team');var nm=row&&row.textContent.trim();
+  var ph=document.createElement('span');ph.className=c+' ph';ph.textContent=((nm||'?')[0]||'?').toUpperCase();host.replaceWith(ph);},true);
 </script>
 </body>
 </html>
