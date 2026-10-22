@@ -2249,7 +2249,7 @@ function buildSeasonUI(){
 }
 function updateGenderUI(){
   const tmp=INDEX?season:"2026";
-  $("#eyebrow").textContent="Temporada "+tmp+" · Flag "+(gender==="f"?"Femenino":"Masculino");
+  $("#eyebrow").textContent="Flag "+(gender==="f"?"Femenino":"Masculino")+(tmp?" - "+tmp:"");
   document.querySelectorAll("#genderSeg button").forEach(b=>b.className=(b.dataset.g===gender?("on"+(gender==="f"?" f":"")):""));
 }
 function loadGender(g){
