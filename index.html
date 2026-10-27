@@ -379,6 +379,16 @@
   .panel-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600}
   footer{font-family:var(--font-mono);letter-spacing:.06em}
   .fx-logo.ph{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--panel-2);border-radius:4px;font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--muted)}
+  /* resumen del partido: numeros grandes centrados */
+  #gameCards{grid-template-columns:2fr repeat(4,1fr)}
+  #gameCards .card.result{grid-column:auto!important}
+  #gameCards .card{border-radius:4px;min-height:170px;display:flex;flex-direction:column}
+  #gameCards .card.stat .k{font-family:var(--font-display);font-size:13px;letter-spacing:.1em}
+  #gameCards .card.stat .mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  #gameCards .card.stat .v{font-weight:800;font-size:clamp(44px,5vw,64px);line-height:.9;margin:0;color:var(--accent)}
+  #gameCards .card.stat.def .v{color:var(--def)}
+  #gameCards .card.stat .s{margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+  @media(max-width:820px){#gameCards{grid-template-columns:repeat(2,1fr)}#gameCards .card.result{grid-column:1 / -1!important}#gameCards .card{min-height:140px}}
 </style>
 </head>
 <body>
@@ -1974,11 +1984,11 @@ function renderGame(){
     <div class="k">Resultado</div><div class="rv">${word}${note}</div>
     <div class="scoreboard">${sbteam(CONFIG.TEAM_NAME,"FENIX")}<div class="sb-score">${ff==null?'?':ff} <span class="sb-sep">-</span> ${rr==null?'?':rr}</div>${sbteam(rivalName,rivalName)}</div></div>`;
   const pct=(v,d)=>d?Math.round(v)+"%":"—";
-  const p6=total.pick6>0?{k:"Pick 6",v:total.pick6}:null;
+  const de=(a,b)=>b?`${a} de ${b}`:"";
   const statList = gameSide==="off"
-    ? [{k:"Touchdowns",v:total.td,sub2:p6},{k:"Puntos extra",v:`${peConv}/${peAtt}<span class="vsub"> (${pePts} pts)</span>`},{k:"% Pase",v:pct(total.pasPct,total._dTotal)},{k:"% Recepción",v:pct(total.recPct,total._dRecTot)}]
-    : [{k:"% Flags",v:pct(total.flagPct,total._dFlagTot)},{k:"Deflecciones",v:total.deflec},{k:"Intercepciones",v:total.intercep,sub2:p6}];
-  const stats=statList.map(c=>`<div class="card ${gameSide==='def'?'def':''}"><div class="k">${c.k}</div><div class="v">${c.v}</div>${c.sub2?`<div class="k k2">${c.sub2.k}</div><div class="v">${c.sub2.v}</div>`:''}${c.sub?`<div class="csub">${c.sub}</div>`:''}</div>`).join("");
+    ? [{k:"Touchdowns",v:total.td},{k:"Puntos extra",v:`${peConv}/${peAtt}`,s:peAtt?`${pePts} ${pePts===1?"pt":"pts"}`:""},{k:"% Pase",v:pct(total.pasPct,total._dTotal),s:de(total.com,total.total)},{k:"% Recepción",v:pct(total.recPct,total._dRecTot),s:de(total.recComp,total.recTot)}]
+    : [{k:"% Flags",v:pct(total.flagPct,total._dFlagTot),s:de(total.flagBien,total.flagTot)},{k:"Deflecciones",v:total.deflec},{k:"Intercepciones",v:total.intercep},{k:"Pick 6",v:total.pick6}];
+  const stats=statList.map(c=>`<div class="card stat ${gameSide==='def'?'def':''}"><div class="k">${c.k}</div><div class="mid"><div class="v">${c.v}</div>${c.s?`<div class="s">${c.s}</div>`:''}</div></div>`).join("");
   $("#gameCards").innerHTML=resCard+stats;
   const cols=gameSide==="off"?OFF_COLS:DEF_COLS, st=gameSort[gameSide];
   const rows=matchSearch([...players],$("#gameSearch").value).sort((a,b)=>{const va=a[st.k],vb=b[st.k];return typeof va==="string"?st.dir*String(va).localeCompare(vb):st.dir*(va-vb);});
