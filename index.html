@@ -1710,11 +1710,12 @@ function loadFotos(csv){
    ROLLUP  (replica exacta de las fórmulas de INFO)
    ============================================================ */
 function offStats(rows,I,n){
-  let com=0,inc=0,passYD=0,pasTD=0,pasPE=0,recComp=0,recPos=0,drop=0,ydRec=0,
+  let intLanz=0,com=0,inc=0,passYD=0,pasTD=0,pasPE=0,recComp=0,recPos=0,drop=0,ydRec=0,
       runs=0,runYD=0,amagues=0,td=0,peComp=0,pePts=0,pasPEpts=0,faltH=0,faltR=0;
   for(const r of rows){
     if(numId(r[I["pasador"]])===n){com++;passYD+=numVal(r[I["yd de pase"]]);}
     if(numId(r[I["pas inc"]])===n)inc++;
+    if(I["intercep"]!=null&&numId(r[I["intercep"]])===n)intLanz++;
     if(numId(r[I["asistencia td"]])===n)pasTD++;
     if(numId(r[I["asist p ext"]])===n){pasPE++;pasPEpts+=numVal(r[I["pt ext"]]);}
     if(numId(r[I["receptor"]])===n){recComp++;const y=numVal(r[I["yd ganadas recep"]]);ydRec+=y;if(y>0)recPos++;}
@@ -1727,36 +1728,38 @@ function offStats(rows,I,n){
     if(numId(r[I["falta recibida"]])===n)faltR++;
   }
   const total=com+inc, recTot=recComp+drop;
-  return {com,inc,total,pasPct:div(com,total)*100,passYD,promPass:div(passYD,com),pasTD,pasPE,
+  return {intLanz,com,inc,total,pasPct:div(com,total)*100,passYD,promPass:div(passYD,com),pasTD,pasPE,
     recComp,drop,recTot,recPct:div(recComp,recTot)*100,ydRec,promRec:div(ydRec,recPos),
     runs,runYD,promRun:div(runYD,runs),amagues,td,peComp,pePts,pasPEpts,faltH,faltR,
     _dTotal:total,_dRecTot:recTot,_dCom:com,_dRecPos:recPos,_dRuns:runs};
 }
 function defStats(rows,I,n){
-  let flagBien=0,flagMal=0,deflec=0,intercep=0,amagues2=0,pick6=0,sack=0,safety=0,dfaltH=0,dfaltR=0;
+  let ydInt=0,pick2=0,flagBien=0,flagMal=0,deflec=0,intercep=0,amagues2=0,pick6=0,sack=0,safety=0,dfaltH=0,dfaltR=0;
   for(const r of rows){
     if(numId(r[I["flag capturado"]])===n)flagBien++;
     if(numId(r[I["flag errado"]])===n)flagMal++;
     if(numId(r[I["pase desviado"]])===n)deflec++;
     if(numId(r[I["intercepcion"]])===n){intercep++;amagues2+=numVal(r[I["amagues"]]);}
     if(numId(r[I["pick 6"]])===n)pick6++;
+    if(I["pick 2"]!=null&&numId(r[I["pick 2"]])===n)pick2++;
+    if(I["yd intercep"]!=null&&numId(r[I["intercepcion"]])===n)ydInt+=numVal(r[I["yd intercep"]]);
     if(numId(r[I["sacks"]])===n)sack++;
     if(numId(r[I["safety"]])===n)safety++;
     if(numId(r[I["faltas realizadas"]])===n)dfaltH++;
     if(numId(r[I["faltas recibidas"]])===n)dfaltR++;
   }
   const flagTot=flagBien+flagMal;
-  return {flagBien,flagMal,flagTot,flagPct:div(flagBien,flagTot)*100,deflec,intercep,amagues2,pick6,sack,safety,dfaltH,dfaltR,_dFlagTot:flagTot};
+  return {ydInt,pick2,flagBien,flagMal,flagTot,flagPct:div(flagBien,flagTot)*100,deflec,intercep,amagues2,pick6,sack,safety,dfaltH,dfaltR,_dFlagTot:flagTot};
 }
 /* combinado por jugador (para ranking y scoreboard) */
 function combine(offRows,defRows,p){
   const o=offStats(offRows,OFF.idx,p.num), d=defStats(defRows,DEF.idx,p.num);
   /* Puntos generados: lo que anota + lo que asiste con pases (TD de pase = 6, pase de PE = 1 o 2).
      A propósito no coincide con el marcador del equipo: el pase y la recepción suman los dos. */
-  const scored=o.td*6 + d.pick6*6 + d.safety*2 + o.pePts;
+  const scored=o.td*6 + d.pick6*6 + d.pick2*2 + d.safety*2 + o.pePts;
   const points=scored + o.pasTD*6 + o.pasPEpts;
   const active = o.total||o.recTot||o.runs||o.td||o.amagues||o.pasTD||o.peComp||o.faltH||o.faltR ||
-                 d.flagTot||d.deflec||d.intercep||d.pick6||d.sack||d.safety||d.dfaltH||d.dfaltR;
+                 d.flagTot||d.deflec||d.intercep||d.pick6||d.pick2||d.sack||d.safety||d.dfaltH||d.dfaltR;
   return {...p,...o,...d,points,scored,active:!!active};
 }
 function scopeRows(part){
@@ -1780,7 +1783,7 @@ function games(){
 function teamRow(players,label){
   const t={nombre:label,pos:""};
   const keys=["com","inc","passYD","pasTD","pasPE","recComp","drop","ydRec","runs","runYD","amagues","td","peComp","pePts",
-    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored",
+    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored","intLanz","ydInt","pick2",
     "_dCom","_dRecPos","_dRuns"];
   keys.forEach(k=>t[k]=players.reduce((s,p)=>s+(p[k]||0),0));
   t.total=t.com+t.inc; t.recTot=t.recComp+t.drop; t.flagTot=t.flagBien+t.flagMal;
@@ -1799,7 +1802,7 @@ const OFF_COLS=[
   {g:"Pase",gc:"o"},
   {k:"com",t:"Com",fmt:"int"},{k:"inc",t:"Inc",fmt:"int"},{k:"total",t:"Tot",fmt:"int"},
   {k:"pasPct",t:"%Pas",fmt:"pct",denom:"_dTotal"},{k:"passYD",t:"YD",fmt:"int"},{k:"promPass",t:"Prom",fmt:"avg",denom:"_dCom"},
-  {k:"pasTD",t:"TD",fmt:"int"},{k:"pasPE",t:"PE",fmt:"int"},
+  {k:"pasTD",t:"TD",fmt:"int"},{k:"pasPE",t:"PE",fmt:"int"},{k:"intLanz",t:"Int",fmt:"int"},
   {g:"Recepción",gc:"o"},
   {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
   {k:"recPct",t:"%Rec",fmt:"pct",denom:"_dRecTot"},{k:"ydRec",t:"YD",fmt:"int"},{k:"promRec",t:"Prom",fmt:"avg",denom:"_dRecPos"},
@@ -1815,8 +1818,8 @@ const DEF_COLS=[
   {g:"Flags",gc:"d"},
   {k:"flagBien",t:"Bien",fmt:"int"},{k:"flagMal",t:"Mal",fmt:"int"},{k:"flagTot",t:"Tot",fmt:"int"},{k:"flagPct",t:"%",fmt:"pct",denom:"_dFlagTot"},
   {g:"Jugadas",gc:"d"},
-  {k:"deflec",t:"Defl",fmt:"int"},{k:"intercep",t:"Int",fmt:"int"},{k:"amagues2",t:"Amag",fmt:"int"},
-  {k:"pick6",t:"Pick6",fmt:"int"},{k:"sack",t:"Sack",fmt:"int"},{k:"safety",t:"Safety",fmt:"int"},
+  {k:"deflec",t:"Defl",fmt:"int"},{k:"intercep",t:"Int",fmt:"int"},{k:"ydInt",t:"YdInt",fmt:"int"},{k:"amagues2",t:"Amag",fmt:"int"},
+  {k:"pick6",t:"Pick6",fmt:"int"},{k:"pick2",t:"Pick2",fmt:"int"},{k:"sack",t:"Sack",fmt:"int"},{k:"safety",t:"Safety",fmt:"int"},
   {g:"Faltas",gc:"d"},
   {k:"dfaltH",t:"Hech",fmt:"int"},{k:"dfaltR",t:"Rec",fmt:"int"},
 ];
