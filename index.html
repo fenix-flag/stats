@@ -2160,7 +2160,7 @@ function loadDemo(msg){
   OFF=tableFromCSV(DEMO_OFF); DEF=tableFromCSV(DEMO_DEF); loadRoster(DEMO_PLANTEL); loadFotos(""); RESULTS=defaultResults(); buildScores(); POSICIONES=[]; FIXTURE=[];
   renderAll(); if(msg)setStatus(msg,"warn");
 }
-function gviz(id,name){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;}
+function gviz(id,name){return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;}
 function extractSheetId(s){s=(s||"").trim();const m=s.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:s.replace(/^https?:\/\/\S*/,"");}
 let loadSeq=0, loadingId=null, lastGood={}, loadedId=null;
 async function loadFromSheet(id){
