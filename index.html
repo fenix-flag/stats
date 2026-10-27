@@ -366,6 +366,16 @@
   .btn{background:var(--accent);color:var(--bg);font-family:var(--font-display);font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;min-height:44px}
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
   .cfg input{background:var(--bg);min-height:44px}
+  .readout.wide{grid-column:span 2}
+  .ro-pod{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .ro-pod li{display:flex;align-items:center;gap:10px;min-width:0}
+  .ro-pos{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--muted);width:24px;flex:none}
+  .ro-av{width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--panel-2);display:grid;place-items:center;flex:none;font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--muted)}
+  .ro-av img{width:100%;height:100%;object-fit:cover}
+  .ro-nm{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ro-pts{font-family:var(--font-mono);font-weight:700;flex:none}
+  .ro-pts small{font-size:11px;color:var(--muted);font-weight:500}
+  .ro-pod li.first .ro-pos,.ro-pod li.first .ro-pts{color:var(--accent)}
   .panel-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600}
   footer{font-family:var(--font-mono);letter-spacing:.06em}
   .fx-logo.ph{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--panel-2);border-radius:4px;font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--muted)}
@@ -412,7 +422,8 @@
     <div class="metric-row"><label for="metric">Ordenar por</label>
       <select id="metric">
         <optgroup label="General">
-          <option value="points">Puntos</option>
+          <option value="scored">Puntos anotados</option>
+          <option value="points">Puntos generados</option>
           <option value="td">Touchdowns</option>
           <option value="amagues">Amagues</option>
         </optgroup>
@@ -1742,10 +1753,11 @@ function combine(offRows,defRows,p){
   const o=offStats(offRows,OFF.idx,p.num), d=defStats(defRows,DEF.idx,p.num);
   /* Puntos generados: lo que anota + lo que asiste con pases (TD de pase = 6, pase de PE = 1 o 2).
      A propósito no coincide con el marcador del equipo: el pase y la recepción suman los dos. */
-  const points=o.td*6 + d.pick6*6 + d.safety*2 + o.pePts + o.pasTD*6 + o.pasPEpts;
+  const scored=o.td*6 + d.pick6*6 + d.safety*2 + o.pePts;
+  const points=scored + o.pasTD*6 + o.pasPEpts;
   const active = o.total||o.recTot||o.runs||o.td||o.amagues||o.pasTD||o.peComp||o.faltH||o.faltR ||
                  d.flagTot||d.deflec||d.intercep||d.pick6||d.sack||d.safety||d.dfaltH||d.dfaltR;
-  return {...p,...o,...d,points,active:!!active};
+  return {...p,...o,...d,points,scored,active:!!active};
 }
 function scopeRows(part){
   const fo=part?OFF.rows.filter(r=>(r[OFF.idx["Partido"]]||"").trim()===part):OFF.rows;
@@ -1768,7 +1780,7 @@ function games(){
 function teamRow(players,label){
   const t={nombre:label,pos:""};
   const keys=["com","inc","passYD","pasTD","pasPE","recComp","drop","ydRec","runs","runYD","amagues","td","peComp","pePts",
-    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points",
+    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored",
     "_dCom","_dRecPos","_dRuns"];
   keys.forEach(k=>t[k]=players.reduce((s,p)=>s+(p[k]||0),0));
   t.total=t.com+t.inc; t.recTot=t.recComp+t.drop; t.flagTot=t.flagBien+t.flagMal;
@@ -1851,17 +1863,18 @@ function renderScoreboard(){
   const R=seasonRecord();
   const tds=season.reduce((s,p)=>s+p.td,0);
   const p6t=season.reduce((s,p)=>s+(p.pick6||0),0);
-  const top=[...season].sort((a,b)=>b.points-a.points)[0];
+  const top3=[...season].filter(p=>p.scored>0).sort((a,b)=>b.scored-a.scored||b.points-a.points).slice(0,3);
+  const topHtml=top3.length?`<ol class="ro-pod">${top3.map((p,i)=>{const ph=photoSrc(p.num);return `<li class="${i===0?'first':''}"><span class="ro-pos">${i+1}°</span><span class="ro-av">${ph?`<img src="${ph}" alt="">`:`<span>${p.num}</span>`}</span><span class="ro-nm">${p.nombre}</span><span class="ro-pts">${p.scored}<small> pts</small></span></li>`;}).join('')}</ol>`:`<div class="v small">—</div>`;
   const cards=[
     {k:"Partidos jugados",v:R.jugados,count:true,sub:`${R.v}V-${R.d}D`},
     {k:"Puntos a favor",v:R.pf,count:true},
     {k:"Puntos en contra",v:R.pa,count:true},
     {k:"TD de la temporada",v:tds,count:true,sub2:p6t>0?{k:"Pick 6",v:p6t}:null},
-    {k:"Más puntos",v:top?top.nombre:"—",small:true,sub:top?`${top.points} pts`:""},
+    {k:"Máximos anotadores",wide:true,html:topHtml},
   ];
   $("#readouts").innerHTML=cards.map(c=>
-    `<div class="readout"><div class="k">${c.k}</div>
-     <div class="v ${c.small?'small':''}" ${c.count?`data-count="${c.v}"`:""}>${c.count?0:c.v}</div>
+    `<div class="readout${c.wide?' wide':''}"><div class="k">${c.k}</div>
+     ${c.html?c.html:`<div class="v ${c.small?'small':''}" ${c.count?`data-count="${c.v}"`:""}>${c.count?0:c.v}</div>`}
      ${c.sub2?`<div class="k" style="margin-top:12px">${c.sub2.k}</div><div class="v" data-count="${c.sub2.v}">0</div>`:""}
      ${c.sub?`<div class="sub">${c.sub}</div>`:""}</div>`).join("");
   $("#seasonTag").textContent=`${R.jugados} partidos · ${R.v}V-${R.d}D · ${season.length} jugadores con acción`;
@@ -1906,7 +1919,7 @@ function renderTeamCard(total){
     <div class="tf-head">${logo?`<img class="tf-logo" src="${logo}">`:''}<div><div class="tf-name">Total FENIX</div><div class="tf-sub">${rec.jugados} partidos · ${rec.v}V-${rec.d}D · ${seasonSide==="off"?"Ofensiva":"Defensiva"}</div></div></div>
     <div class="tf-grid">${groups.map(mini).join("")}</div></div>`;
 }
-const UNIT={points:"pts",td:"TD",amagues:"amag",com:"comp",passYD:"yds",pasTD:"TD",pasPct:"%",recPct:"%",flagPct:"%",safety:"safety",promPass:"yds/pase",promRec:"yds/rec",promRun:"yds/corr",
+const UNIT={points:"pts",scored:"pts",td:"TD",amagues:"amag",com:"comp",passYD:"yds",pasTD:"TD",pasPct:"%",recPct:"%",flagPct:"%",safety:"safety",promPass:"yds/pase",promRec:"yds/rec",promRun:"yds/corr",
   recComp:"rec",ydRec:"yds",runs:"runs",runYD:"yds",flagBien:"flags",deflec:"defl",intercep:"int",sack:"sacks",pick6:"pick6"};
 const PCT_DENOM={pasPct:"_dTotal",recPct:"_dRecTot",flagPct:"_dFlagTot"};
 const AVG_DENOM={promPass:"_dCom",promRec:"_dRecPos",promRun:"_dRuns"};
@@ -1971,7 +1984,7 @@ function renderGame(){
 /* ===== Por jugador ===== */
 const PLOG_COLS=[
   {k:"gameLabel",t:"Partido",fmt:"txt",st:true},
-  {k:"points",t:"Pts",fmt:"int"},{k:"td",t:"TD",fmt:"int"},
+  {k:"scored",t:"PtsAnot",fmt:"int"},{k:"points",t:"PtsGen",fmt:"int"},{k:"td",t:"TD",fmt:"int"},
   {k:"com",t:"Com",fmt:"int"},{k:"passYD",t:"YdPase",fmt:"int"},{k:"pasTD",t:"TDp",fmt:"int"},
   {k:"recComp",t:"Rec",fmt:"int"},{k:"ydRec",t:"YdRec",fmt:"int"},
   {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YdCor",fmt:"int"},{k:"amagues",t:"Amag",fmt:"int"},
@@ -2000,12 +2013,12 @@ function renderPlayer(){
   const rankOf=k=>[...active].sort((a,b)=>b[k]-a[k]).findIndex(x=>x.num===p.num)+1;
   const ph=photoSrc(p.num);
   const avatar=ph?`<div class="pf-photo"><img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
-  const cats=[["points","Puntos"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
+  const cats=[["scored","Pts anotados"],["points","Pts generados"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
   const medal=r=>r+"°";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
   const ydsTot=s.passYD+s.ydRec+s.runYD;
   const tdTot=(s.td||0)+(s.pasTD||0);
-  const readRows=[{lbl:"Resumen",cls:"g",cards:[["Puntos",s.points],["TD tot.",tdTot],["Yds tot.",ydsTot]]}];
+  const readRows=[{lbl:"Resumen",cls:"g",cards:[["Pts anot.",s.scored],["Pts gen.",s.points],["TD tot.",tdTot],["Yds tot.",ydsTot]]}];
   if((s._dTotal||0)>0) readRows.push({lbl:"Pase",cls:"o",cards:[["Completos",s.com],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD",s.pasTD]]});
   if((s.recComp||0)>0||(s.runs||0)>0) readRows.push({lbl:"Recep / Corrida",cls:"o",cards:[["Recep",s.recComp],["Corridas",s.runs],["Amagues",s.amagues]]});
   const defAct=(s.flagBien||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0)+(s.pick6||0)+(s.safety||0);
