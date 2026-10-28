@@ -525,6 +525,14 @@
   .pp-grid.c4{grid-template-columns:repeat(4,1fr)}
   @media(max-width:1000px){.pp-grid.c4{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:760px){.pp-grid.c4{grid-template-columns:repeat(2,1fr)}}
+  /* # y nombre fijos al desplazar la tabla (jugadores y fila FENIX) */
+  #seasonTable td.tdnum,#seasonTable th[data-k="num"],#gameTable td.tdnum,#gameTable th[data-k="num"]{position:sticky;left:0;z-index:2;background:var(--panel)}
+  #seasonTable td.tdn,#seasonTable th[data-k="nombre"],#gameTable td.tdn,#gameTable th[data-k="nombre"]{position:sticky;left:44px;z-index:2;background:var(--panel)}
+  #seasonTable tr.total td.tdnum,#seasonTable tr.total td.tdn,#gameTable tr.total td.tdnum,#gameTable tr.total td.tdn{background:linear-gradient(rgba(255,194,75,.10),rgba(255,194,75,.10)),var(--panel)}
+  .tav-i.logo{border-radius:0;background:transparent}.tav-i.logo img{object-fit:contain}
+  #seasonTable th[data-k="num"],#seasonTable td.tdnum,#gameTable th[data-k="num"],#gameTable td.tdnum{width:44px;min-width:44px;max-width:44px;padding-left:4px;padding-right:4px;box-sizing:border-box}
+  #seasonTable thead th[data-k="num"],#seasonTable thead th[data-k="nombre"],#gameTable thead th[data-k="num"],#gameTable thead th[data-k="nombre"]{background:var(--panel)!important;z-index:3}
+  #seasonTable tr.total td.tdnum,#seasonTable tr.total td.tdn,#gameTable tr.total td.tdnum,#gameTable tr.total td.tdn{background:#2A1D11!important}
 </style>
 </head>
 <body>
@@ -1952,14 +1960,14 @@ const OFF_COLS=[
   {g:"Pase",gc:"o"},
   {k:"com",t:"Com",fmt:"int"},{k:"inc",t:"Inc",fmt:"int"},{k:"total",t:"Tot",fmt:"int"},
   {k:"pasPct",t:"%Pas",fmt:"pct",denom:"_dTotal"},{k:"passYD",t:"YD",fmt:"int"},{k:"promPass",t:"Prom",fmt:"avg",denom:"_dCom"},
-  {k:"pasTD",t:"TD",fmt:"int"},{k:"pasPE",t:"PE",fmt:"int"},{k:"intLanz",t:"Int",fmt:"int"},{k:"peFall",t:"PE fall",fmt:"int"},
+  {k:"pasTD",t:"TD",fmt:"int"},{k:"intLanz",t:"Int",fmt:"int"},
   {g:"Recepción",gc:"o"},
-  {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"dropPE",t:"Drop PE",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
-  {k:"recPct",t:"%Rec",fmt:"pct",denom:"_dRecTot"},{k:"ydRec",t:"YD",fmt:"int"},{k:"promRec",t:"Prom",fmt:"avg",denom:"_dRecPos"},
+  {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
+  {k:"recPct",t:"%Rec",fmt:"pct",denom:"_dRecTot"},{k:"ydRec",t:"YD",fmt:"int"},{k:"promRec",t:"Prom",fmt:"avg",denom:"_dRecPos"},{k:"amagues",t:"Amag",fmt:"int"},
   {g:"Corrida",gc:"o"},
-  {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YD",fmt:"int"},{k:"promRun",t:"Prom",fmt:"avg",denom:"_dRuns"},
+  {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YD",fmt:"int"},{k:"promRun",t:"Prom",fmt:"avg",denom:"_dRuns"},{k:"amagues",t:"Amag",fmt:"int"},
   {g:"Anotación",gc:"o"},
-  {k:"amagues",t:"Amag",fmt:"int"},{k:"td",t:"TD",fmt:"int"},{k:"peComp",t:"PE",fmt:"int"},
+  {k:"td",t:"TD",fmt:"int"},{k:"peComp",t:"PE anot",fmt:"int"},{k:"pasPE",t:"PE pase",fmt:"int"},{k:"peFall",t:"PE fall",fmt:"int"},{k:"dropPE",t:"Drop PE",fmt:"int"},
   {g:"Faltas",gc:"o"},
   {k:"faltH",t:"Hech",fmt:"int"},{k:"faltR",t:"Rec",fmt:"int"},
 ];
@@ -2004,7 +2012,7 @@ function renderTable(el,cols,rows,total,sortKey,onSort,rowCls){
   let body="<tbody>";
   const nmCell=r=>{if(r.num==null)return fmtCell(r,{k:"nombre",fmt:"txt"});const ph=photoSrc(r.num);return `<div class="tav"><span class="tav-i">${ph?`<img src="${ph}" style="${pstyle(r.num)}" alt="">`:''}</span><span>${fmtCell(r,{k:"nombre",fmt:"txt"})}</span></div>`;};
   rows.forEach(r=>{body+=`<tr class="${rowCls?rowCls(r):''}">`+dcols.map(c=>`<td class="${(c.dim||c.fmt==='pct'||c.fmt==='avg'?'dim':'')}${gsc(c)}${c.k==='nombre'?' tdn':''}${c.k==='num'?' tdnum':''}">${c.k==='nombre'?nmCell(r):fmtCell(r,c)}</td>`).join("")+"</tr>";});
-  if(total)body+='<tr class="total">'+dcols.map(c=>`<td class="${gsc(c).trim()}">${c.k==='nombre'?total.nombre:((c.k==='pos'||c.k==='num')?'':fmtCell(total,c))}</td>`).join("")+"</tr>";
+  if(total)body+='<tr class="total">'+dcols.map(c=>`<td class="${gsc(c).trim()}${c.k==='nombre'?' tdn':''}${c.k==='num'?' tdnum':''}">${c.k==='nombre'?(total.logo?`<div class="tav"><span class="tav-i logo"><img src="${total.logo}" alt=""></span><span>${total.nombre}</span></div>`:total.nombre):((c.k==='pos'||c.k==='num')?'':fmtCell(total,c))}</td>`).join("")+"</tr>";
   el.innerHTML=head+body+"</tbody>";
   if(onSort)el.querySelectorAll("th[data-k]:not(.static)").forEach(th=>th.onclick=()=>onSort(th.dataset.k));
 }
@@ -2055,7 +2063,7 @@ function renderSeason(){
   const players=matchSearch(playersFor(null),$("#seasonSearch").value).sort((a,b)=>{
     const za=isZero(a),zb=isZero(b);if(za!==zb)return za?1:-1;
     const va=a[st.k],vb=b[st.k];return typeof va==="string"?st.dir*String(va).localeCompare(vb):st.dir*(va-vb);});
-  const total=teamRow(playersFor(null),"Total FENIX");
+  const total=teamRow(playersFor(null),"FENIX");total.logo=($(".team-logo")&&$(".team-logo").src)||logoSrc(CONFIG.TEAM_NAME)||"";
   renderTable($("#seasonTable"),cols,players,total,st,k=>{
     if(st.k===k){sortState[seasonSide]=nextSort(st,DEF_SEASON[seasonSide],k);}else sortState[seasonSide]={k,dir:-1};renderSeason();},r=>isZero(r)?"zr":"");
   renderSeasonKpis(total);
@@ -2127,7 +2135,7 @@ function fillGameSelector(){
 function renderGame(){
   const part=$("#gameSel").value;
   const players=playersForAll(part);
-  const total=teamRow(players,"TOTAL");
+  const total=teamRow(players,"FENIX");total.logo=($(".team-logo")&&$(".team-logo").src)||logoSrc(CONFIG.TEAM_NAME)||"";
   const cPt=OFF.idx["pt ext"];
   let peAtt=0,peConv=0,pePts=0;
   if(cPt!==undefined){OFF.rows.filter(r=>(r[OFF.idx["Partido"]]||"").trim()===part).forEach(r=>{const raw=String(r[cPt]??"").trim();if(raw!==""){peAtt++;const x=parseInt(raw,10);if(x>0){peConv++;pePts+=x;}}});}
