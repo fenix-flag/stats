@@ -487,6 +487,30 @@
   .rl.z,.rl.z b{color:#5A5C63}.rl.z .av{opacity:.5}
   @media(max-width:760px){.rkv{grid-template-columns:1fr}.rl{flex:none}
     .pst.first .pst-nm{font-size:clamp(20px,6vw,34px)}.pst.first .pst-n,.pst.first .pst-v{font-size:clamp(40px,12vw,64px)}}
+  /* miniaturas en tablas */
+  .tav{display:flex;align-items:center;gap:9px}
+  .tav-i{width:26px;height:26px;border-radius:50%;overflow:hidden;background:#2A1A0E;flex:none;position:relative}
+  .tav-i img{width:100%;height:100%;object-fit:cover;display:block}
+  tr.zr .tav-i{opacity:.5}
+  td.tdnum,th[data-k="num"]{width:44px;text-align:center!important}
+  @media(max-width:560px){
+    #seasonTable td.tdnum,#seasonTable th[data-k="num"],#gameTable td.tdnum,#gameTable th[data-k="num"]{position:sticky;left:0;z-index:2;background:var(--panel)}
+    #seasonTable td.tdn,#seasonTable th[data-k="nombre"],#gameTable td.tdn,#gameTable th[data-k="nombre"]{position:sticky;left:44px;z-index:2;background:var(--panel)}
+    .season-scroll #seasonTable th:first-child,.season-scroll #seasonTable td:first-child{left:0}}
+  /* póster: alto fijo y foto cuadrada (misma proporción que el encuadre del Panel) */
+  .pp{height:480px;grid-template-columns:480px minmax(0,1fr)}
+  .pp-left{min-height:0;height:100%}
+  .pp-left img{object-fit:cover}
+  .pp-right{min-height:0}
+  .pp-right .pp-grid{flex:1;min-height:0;grid-auto-rows:1fr}
+  .pp-t{min-height:0;padding:10px 12px}
+  .pp-right .pp-empty{flex:1;min-height:0}
+  @media(max-width:1000px){.pp{height:auto;grid-template-columns:1fr}.pp-left{height:auto;aspect-ratio:1/1}.pp-right .pp-grid{grid-auto-rows:auto}.pp-t{min-height:88px}}
+  .pst img{object-fit:cover;object-position:center 30%!important}
+  th[data-k="nombre"],td.tdn,tr.total td:nth-child(2){text-align:left!important}
+  .pp-t>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .pp-t>div .pp-s{margin-top:0}
+  .pp-t.big .pp-v{font-size:40px}
 </style>
 </head>
 <body>
@@ -1910,7 +1934,7 @@ function teamRow(players,label){
    COLUMNAS (con tu vocabulario)
    ============================================================ */
 const OFF_COLS=[
-  {k:"nombre",t:"Jugador",fmt:"txt"},{k:"num",t:"#",fmt:"int",dim:true},{k:"pos",t:"Pos",fmt:"txt",dim:true},
+  {k:"num",t:"#",fmt:"int",dim:true},{k:"nombre",t:"Jugador",fmt:"txt"},{k:"pos",t:"Pos",fmt:"txt",dim:true},
   {g:"Pase",gc:"o"},
   {k:"com",t:"Com",fmt:"int"},{k:"inc",t:"Inc",fmt:"int"},{k:"total",t:"Tot",fmt:"int"},
   {k:"pasPct",t:"%Pas",fmt:"pct",denom:"_dTotal"},{k:"passYD",t:"YD",fmt:"int"},{k:"promPass",t:"Prom",fmt:"avg",denom:"_dCom"},
@@ -1926,7 +1950,7 @@ const OFF_COLS=[
   {k:"faltH",t:"Hech",fmt:"int"},{k:"faltR",t:"Rec",fmt:"int"},
 ];
 const DEF_COLS=[
-  {k:"nombre",t:"Jugador",fmt:"txt"},{k:"num",t:"#",fmt:"int",dim:true},{k:"pos",t:"Pos",fmt:"txt",dim:true},
+  {k:"num",t:"#",fmt:"int",dim:true},{k:"nombre",t:"Jugador",fmt:"txt"},{k:"pos",t:"Pos",fmt:"txt",dim:true},
   {g:"Flags",gc:"d"},
   {k:"flagBien",t:"Bien",fmt:"int"},{k:"flagMal",t:"Mal",fmt:"int"},{k:"flagTot",t:"Tot",fmt:"int"},{k:"flagPct",t:"%",fmt:"pct",denom:"_dFlagTot"},
   {g:"Jugadas",gc:"d"},
@@ -1964,7 +1988,8 @@ function renderTable(el,cols,rows,total,sortKey,onSort,rowCls){
   });
   head+="</tr></thead>";
   let body="<tbody>";
-  rows.forEach(r=>{body+=`<tr class="${rowCls?rowCls(r):''}">`+dcols.map(c=>`<td class="${(c.dim||c.fmt==='pct'||c.fmt==='avg'?'dim':'')}${gsc(c)}">${fmtCell(r,c)}</td>`).join("")+"</tr>";});
+  const nmCell=r=>{if(r.num==null)return fmtCell(r,{k:"nombre",fmt:"txt"});const ph=photoSrc(r.num);return `<div class="tav"><span class="tav-i">${ph?`<img src="${ph}" style="${pstyle(r.num)}" alt="">`:''}</span><span>${fmtCell(r,{k:"nombre",fmt:"txt"})}</span></div>`;};
+  rows.forEach(r=>{body+=`<tr class="${rowCls?rowCls(r):''}">`+dcols.map(c=>`<td class="${(c.dim||c.fmt==='pct'||c.fmt==='avg'?'dim':'')}${gsc(c)}${c.k==='nombre'?' tdn':''}${c.k==='num'?' tdnum':''}">${c.k==='nombre'?nmCell(r):fmtCell(r,c)}</td>`).join("")+"</tr>";});
   if(total)body+='<tr class="total">'+dcols.map(c=>`<td class="${gsc(c).trim()}">${c.k==='nombre'?total.nombre:((c.k==='pos'||c.k==='num')?'':fmtCell(total,c))}</td>`).join("")+"</tr>";
   el.innerHTML=head+body+"</tbody>";
   if(onSort)el.querySelectorAll("th[data-k]:not(.static)").forEach(th=>th.onclick=()=>onSort(th.dataset.k));
@@ -2185,7 +2210,7 @@ function renderPlayer(){
   box.innerHTML=`<div class="pp">
     <div class="pp-left">${ppImg}<div class="pp-id"><div class="pp-num">${p.num}</div><div class="pp-name">${p.nombre}</div>
       <div class="pp-meta">${p.pos?`<span class="pp-pos">${p.pos}</span>`:''}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
-      <div class="pp-pts"><b>${s.scored}</b> pts anotados · <b>${s.points}</b> generados</div></div></div>
+      </div></div>
     <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button></div>
       ${body}<div class="pp-medals">${medalsH}</div></div></div>
     <div class="pf-grids"><div class="pf-grid o"><h3>Pases</h3><div class="kvs">${pasePairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
