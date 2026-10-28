@@ -1722,12 +1722,14 @@ function loadFotos(csv){
    ROLLUP  (replica exacta de las fórmulas de INFO)
    ============================================================ */
 function offStats(rows,I,n){
-  let intLanz=0,com=0,inc=0,passYD=0,pasTD=0,pasPE=0,recComp=0,recPos=0,drop=0,ydRec=0,
+  let peFall=0,dropPE=0,intLanz=0,com=0,inc=0,passYD=0,pasTD=0,pasPE=0,recComp=0,recPos=0,drop=0,ydRec=0,
       runs=0,runYD=0,amagues=0,td=0,peComp=0,pePts=0,pasPEpts=0,faltH=0,faltR=0;
   for(const r of rows){
     if(numId(r[I["pasador"]])===n){com++;passYD+=numVal(r[I["yd de pase"]]);}
     if(numId(r[I["pas inc"]])===n)inc++;
     if(I["intercep"]!=null&&numId(r[I["intercep"]])===n)intLanz++;
+    if(I["pasador pe fallado"]!=null&&numId(r[I["pasador pe fallado"]])===n)peFall++;
+    if(I["jugador pe fallado"]!=null&&I["motivo pe"]!=null&&String(r[I["motivo pe"]]||"").trim().toLowerCase()==="drop"&&numId(r[I["jugador pe fallado"]])===n)dropPE++;
     if(numId(r[I["asistencia td"]])===n)pasTD++;
     if(numId(r[I["asist p ext"]])===n){pasPE++;pasPEpts+=numVal(r[I["pt ext"]]);}
     if(numId(r[I["receptor"]])===n){recComp++;const y=numVal(r[I["yd ganadas recep"]]);ydRec+=y;if(y>0)recPos++;}
@@ -1740,7 +1742,7 @@ function offStats(rows,I,n){
     if(numId(r[I["falta recibida"]])===n)faltR++;
   }
   const total=com+inc, recTot=recComp+drop;
-  return {intLanz,com,inc,total,pasPct:div(com,total)*100,passYD,promPass:div(passYD,com),pasTD,pasPE,
+  return {peFall,dropPE,intLanz,com,inc,total,pasPct:div(com,total)*100,passYD,promPass:div(passYD,com),pasTD,pasPE,
     recComp,drop,recTot,recPct:div(recComp,recTot)*100,ydRec,promRec:div(ydRec,recPos),
     runs,runYD,promRun:div(runYD,runs),amagues,td,peComp,pePts,pasPEpts,faltH,faltR,
     _dTotal:total,_dRecTot:recTot,_dCom:com,_dRecPos:recPos,_dRuns:runs};
@@ -1795,7 +1797,7 @@ function games(){
 function teamRow(players,label){
   const t={nombre:label,pos:""};
   const keys=["com","inc","passYD","pasTD","pasPE","recComp","drop","ydRec","runs","runYD","amagues","td","peComp","pePts",
-    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored","intLanz","ydInt","pick2",
+    "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored","intLanz","ydInt","pick2","peFall","dropPE",
     "_dCom","_dRecPos","_dRuns"];
   keys.forEach(k=>t[k]=players.reduce((s,p)=>s+(p[k]||0),0));
   t.total=t.com+t.inc; t.recTot=t.recComp+t.drop; t.flagTot=t.flagBien+t.flagMal;
@@ -1814,9 +1816,9 @@ const OFF_COLS=[
   {g:"Pase",gc:"o"},
   {k:"com",t:"Com",fmt:"int"},{k:"inc",t:"Inc",fmt:"int"},{k:"total",t:"Tot",fmt:"int"},
   {k:"pasPct",t:"%Pas",fmt:"pct",denom:"_dTotal"},{k:"passYD",t:"YD",fmt:"int"},{k:"promPass",t:"Prom",fmt:"avg",denom:"_dCom"},
-  {k:"pasTD",t:"TD",fmt:"int"},{k:"pasPE",t:"PE",fmt:"int"},{k:"intLanz",t:"Int",fmt:"int"},
+  {k:"pasTD",t:"TD",fmt:"int"},{k:"pasPE",t:"PE",fmt:"int"},{k:"intLanz",t:"Int",fmt:"int"},{k:"peFall",t:"PE fall",fmt:"int"},
   {g:"Recepción",gc:"o"},
-  {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
+  {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"dropPE",t:"Drop PE",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
   {k:"recPct",t:"%Rec",fmt:"pct",denom:"_dRecTot"},{k:"ydRec",t:"YD",fmt:"int"},{k:"promRec",t:"Prom",fmt:"avg",denom:"_dRecPos"},
   {g:"Corrida",gc:"o"},
   {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YD",fmt:"int"},{k:"promRun",t:"Prom",fmt:"avg",denom:"_dRuns"},
@@ -2028,9 +2030,9 @@ function renderPlayer(){
   const rankOf=k=>[...active].sort((a,b)=>b[k]-a[k]).findIndex(x=>x.num===p.num)+1;
   const ph=photoSrc(p.num);
   const avatar=ph?`<div class="pf-photo"><img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
-  const cats=[["scored","Pts anotados"],["points","Pts generados"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
+  const cats=[["scored","Pts anotados"],["points","Pts generados"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["deflec","Deflecciones"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
   const medal=r=>r+"°";
-  const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r).slice(0,4);
+  const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r);
   const ydsTot=s.passYD+s.ydRec+s.runYD;
   const tdTot=(s.td||0)+(s.pasTD||0);
   const readRows=[{lbl:"Resumen",cls:"g",cards:[["Pts anot.",s.scored],["Pts gen.",s.points],["TD tot.",tdTot],["Yds tot.",ydsTot]]}];
