@@ -522,6 +522,9 @@
   .rv-pod .pst .pst-c{width:64px;height:64px}
   .pst img{object-position:center center!important}
   @media(max-width:1000px){.rkv{grid-template-columns:1fr}.rv-list .rl{flex:none}}
+  .pp-grid.c4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:1000px){.pp-grid.c4{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:760px){.pp-grid.c4{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -2179,10 +2182,10 @@ function renderPlayer(){
   const box=$("#playerProfile");
   if(!p){box.innerHTML="<p class='note'><span>Todavía no hay jugadores con acción cargada.</span></p>";return;}
   const {fo,fd}=scopeRows(null), s=combine(fo,fd,p), active=playersFor(null);
-  const rankOf=k=>[...active].sort((a,b)=>b[k]-a[k]).findIndex(x=>x.num===p.num)+1;
+  const rankOf=k=>{const v=+s[k]||0;return 1+active.filter(x=>x.num!==p.num&&(+x[k]||0)>v).length;};
   const ph=photoSrc(p.num);
   const avatar=ph?`<div class="pf-photo"><img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}"></div>`:`<div class="pf-photo pf-ph">${p.num}</div>`;
-  const cats=[["scored","Pts anotados"],["points","Pts generados"],["td","TD"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["deflec","Deflecciones"],["intercep","Intercep"],["sack","Sacks"],["runYD","Yds corr"]];
+  const cats=[["td","TD"],["pasTD","TD pase"],["peComp","Puntos extra"],["safety","Safety"],["amagues","Amagues"],["passYD","Yds pase"],["ydRec","Yds recep"],["recComp","Recep"],["flagBien","Flags"],["deflec","Deflecciones"],["intercep","Intercep"],["pick6","Pick 6"],["sack","Sacks"],["runYD","Yds corr"],["com","Pases compl."]];
   const medal=r=>r+"°";
   const badges=cats.map(([k,l])=>({l,r:rankOf(k),v:s[k]})).filter(b=>b.r<=3&&b.v>0).sort((a,b)=>a.r-b.r);
   const ydsTot=s.passYD+s.ydRec+s.runYD;
@@ -2201,19 +2204,19 @@ function renderPlayer(){
   const perfil=(ofAct===0&&dfAct>0)?"Perfil defensivo":(dfAct===0&&ofAct>0)?"Perfil ofensivo":totAct<5?"":share>=0.7?"Perfil ofensivo":share<=0.3?"Perfil defensivo":"Todoterreno";
   if(pfTabFor!==p.num){pfTabFor=p.num;pfTab=(dfAct>ofAct)?"def":"off";}
   const mk=(k,l,v,sub,rk)=>({k,l,v,sub,r:(rk&&v>0)?rankOf(k):99});
-  const offT=[mk("scored","Pts anotados",s.scored,"",1),mk("td","TD",tdTot,"",1),
+  const offT=[mk("scored","Pts anotados",s.scored,"",0),mk("td","TD",s.td,"",1),mk("pasTD","TD pase",s.pasTD,"",1),mk("peComp","Puntos extra",s.peComp,s.peComp?`${s.pePts} pts`:"",1),
     mk("recComp","Recepciones",s.recComp,s.recTot?`${s.recComp} de ${s.recTot}`:"",1),mk("ydRec","Yds recep",s.ydRec,"",1),mk("runYD","Yds corrida",s.runYD,s.runs?`${s.runs} corridas`:"",1),
     mk("com","Pases compl.",s.com,s._dTotal?`${s.com} de ${s._dTotal}`:"",1),mk("passYD","Yds pase",s.passYD,"",1),mk("amagues","Amagues",s.amagues,"",1)];
   const defT=[mk("flagBien","Flags",s.flagBien,"",1),{k:"flagPct",l:"% Flags",v:s._dFlagTot?Math.round(s.flagPct)+"%":0,sub:s._dFlagTot?`${s.flagBien} de ${s.flagTot}`:"",r:99},
-    mk("deflec","Deflecciones",s.deflec,"",1),mk("intercep","Intercep.",s.intercep,"",1),mk("pick6","Pick 6",s.pick6,"",1),mk("sack","Sacks",s.sack,"",1)];
+    mk("deflec","Deflecciones",s.deflec,"",1),mk("intercep","Intercep.",s.intercep,"",1),mk("pick6","Pick 6",s.pick6,"",1),mk("sack","Sacks",s.sack,"",1),mk("safety","Safety",s.safety,"",1)];
   const tiles=pfTab==="def"?defT:offT;
   const nz=t=>t.v!==0&&t.v!=="0";
   const hasOff=offT.some(nz), hasDef=defT.some(nz);
-  let bigK=null;{const m=tiles.filter(t=>t.r<=3).sort((a,b)=>a.r-b.r);if(m.length)bigK=m[0].k;}
+  let bigK=null;if(tiles.length<=8){const m=tiles.filter(t=>t.r<=3).sort((a,b)=>a.r-b.r);if(m.length)bigK=m[0].k;}
   const mcls=r=>r===1?"m1":r===2?"m2":"m3";
   const tileH=t=>`<div class="pp-t ${t.k===bigK?'big':''} ${t.r<=3?'hl':''} ${nz(t)?'':'zero'}"><span class="pp-k">${t.l}</span>${t.r<=3?`<i class="pp-medal ${mcls(t.r)}" title="${t.r}° del equipo"></i>`:''}<div class="pp-mid"><b class="pp-v">${t.v}</b>${t.sub?`<div class="pp-s">${t.sub}</div>`:''}</div></div>`;
   const body=(pfTab==="def"?hasDef:hasOff)
-    ? `<div class="pp-grid">${(bigK?[tiles.find(t=>t.k===bigK),...tiles.filter(t=>t.k!==bigK)]:tiles).map(tileH).join("")}</div>`
+    ? `<div class="pp-grid ${tiles.length>9?'c4':''}">${(bigK?[tiles.find(t=>t.k===bigK),...tiles.filter(t=>t.k!==bigK)]:tiles).map(tileH).join("")}</div>`
     : `<div class="pp-empty"><b>Sin jugadas de ${pfTab==="def"?"defensa":"ataque"}</b><span>Todavía no tiene ${pfTab==="def"?"flags, deflecciones ni intercepciones":"pases, recepciones ni corridas"} cargadas.</span>${(pfTab==="def"?hasOff:hasDef)?`<button type="button" data-pft="${pfTab==="def"?"off":"def"}">Ver ${pfTab==="def"?"ataque":"defensa"}</button>`:''}</div>`;
   const nM=r=>badges.filter(b=>b.r===r).length;
   const medalsH=[[1,"oro","oros"],[2,"plata","platas"],[3,"bronce","bronces"]].map(([r,s1,sn])=>{const n=nM(r);return `<div class="${n?'':'off'}"><i class="pp-medal ${mcls(r)}"></i><b>${n}</b>${n===1?s1:sn}</div>`;}).join("");
