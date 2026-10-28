@@ -508,9 +508,20 @@
   @media(max-width:1000px){.pp{height:auto;grid-template-columns:1fr}.pp-left{height:auto;aspect-ratio:1/1}.pp-right .pp-grid{grid-auto-rows:auto}.pp-t{min-height:88px}}
   .pst img{object-fit:cover;object-position:center 30%!important}
   th[data-k="nombre"],td.tdn,tr.total td:nth-child(2){text-align:left!important}
-  .pp-t>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .pp-t>div .pp-s{margin-top:0}
-  .pp-t.big .pp-v{font-size:40px}
+  /* cuadros de la ficha: número centrado, detalle debajo */
+  .pp-t{display:flex;flex-direction:column;justify-content:flex-start}
+  .pp-mid{flex:1;display:grid;grid-template-rows:1fr auto 1fr;justify-items:center;text-align:center;min-height:0}
+  .pp-mid .pp-v{grid-row:2}
+  .pp-mid .pp-s{grid-row:3;align-self:start;margin-top:6px}
+  .pp-t.big .pp-v{font-size:44px}
+  /* podio del ranking: fotos cuadradas como la ficha */
+  .rkv{grid-template-columns:480px minmax(0,1fr)}
+  .rv-pod{display:flex;flex-direction:column;gap:10px}
+  .rv-pod .pst{aspect-ratio:1/1}
+  .rv-pod .pst .pst-n{font-size:64px}.rv-pod .pst .pst-nm{font-size:34px}.rv-pod .pst .pst-v{font-size:64px}
+  .rv-pod .pst .pst-c{width:64px;height:64px}
+  .pst img{object-position:center center!important}
+  @media(max-width:1000px){.rkv{grid-template-columns:1fr}.rv-list .rl{flex:none}}
 </style>
 </head>
 <body>
@@ -2187,10 +2198,10 @@ function renderPlayer(){
   /* ---- ficha póster ---- */
   const ofAct=(s._dTotal||0)+(s.recTot||0)+(s.runs||0), dfAct=(s.flagTot||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0);
   const totAct=ofAct+dfAct, share=totAct?ofAct/totAct:0;
-  const perfil=totAct<5?"":share>=0.7?"Perfil ofensivo":share<=0.3?"Perfil defensivo":"Todoterreno";
+  const perfil=(ofAct===0&&dfAct>0)?"Perfil defensivo":(dfAct===0&&ofAct>0)?"Perfil ofensivo":totAct<5?"":share>=0.7?"Perfil ofensivo":share<=0.3?"Perfil defensivo":"Todoterreno";
   if(pfTabFor!==p.num){pfTabFor=p.num;pfTab=(dfAct>ofAct)?"def":"off";}
   const mk=(k,l,v,sub,rk)=>({k,l,v,sub,r:(rk&&v>0)?rankOf(k):99});
-  const offT=[mk("scored","Pts anotados",s.scored,"",1),mk("td","TD",tdTot,"",1),mk("ydsTot","Yardas tot.",ydsTot,"",0),
+  const offT=[mk("scored","Pts anotados",s.scored,"",1),mk("td","TD",tdTot,"",1),
     mk("recComp","Recepciones",s.recComp,s.recTot?`${s.recComp} de ${s.recTot}`:"",1),mk("ydRec","Yds recep",s.ydRec,"",1),mk("runYD","Yds corrida",s.runYD,s.runs?`${s.runs} corridas`:"",1),
     mk("com","Pases compl.",s.com,s._dTotal?`${s.com} de ${s._dTotal}`:"",1),mk("passYD","Yds pase",s.passYD,"",1),mk("amagues","Amagues",s.amagues,"",1)];
   const defT=[mk("flagBien","Flags",s.flagBien,"",1),{k:"flagPct",l:"% Flags",v:s._dFlagTot?Math.round(s.flagPct)+"%":0,sub:s._dFlagTot?`${s.flagBien} de ${s.flagTot}`:"",r:99},
@@ -2200,7 +2211,7 @@ function renderPlayer(){
   const hasOff=offT.some(nz), hasDef=defT.some(nz);
   let bigK=null;{const m=tiles.filter(t=>t.r<=3).sort((a,b)=>a.r-b.r);if(m.length)bigK=m[0].k;}
   const mcls=r=>r===1?"m1":r===2?"m2":"m3";
-  const tileH=t=>`<div class="pp-t ${t.k===bigK?'big':''} ${t.r<=3?'hl':''} ${nz(t)?'':'zero'}"><span class="pp-k">${t.l}</span>${t.r<=3?`<i class="pp-medal ${mcls(t.r)}" title="${t.r}° del equipo"></i>`:''}<div><b class="pp-v">${t.v}</b>${t.sub?`<div class="pp-s">${t.sub}</div>`:''}</div></div>`;
+  const tileH=t=>`<div class="pp-t ${t.k===bigK?'big':''} ${t.r<=3?'hl':''} ${nz(t)?'':'zero'}"><span class="pp-k">${t.l}</span>${t.r<=3?`<i class="pp-medal ${mcls(t.r)}" title="${t.r}° del equipo"></i>`:''}<div class="pp-mid"><b class="pp-v">${t.v}</b>${t.sub?`<div class="pp-s">${t.sub}</div>`:''}</div></div>`;
   const body=(pfTab==="def"?hasDef:hasOff)
     ? `<div class="pp-grid">${(bigK?[tiles.find(t=>t.k===bigK),...tiles.filter(t=>t.k!==bigK)]:tiles).map(tileH).join("")}</div>`
     : `<div class="pp-empty"><b>Sin jugadas de ${pfTab==="def"?"defensa":"ataque"}</b><span>Todavía no tiene ${pfTab==="def"?"flags, deflecciones ni intercepciones":"pases, recepciones ni corridas"} cargadas.</span>${(pfTab==="def"?hasOff:hasDef)?`<button type="button" data-pft="${pfTab==="def"?"off":"def"}">Ver ${pfTab==="def"?"ataque":"defensa"}</button>`:''}</div>`;
