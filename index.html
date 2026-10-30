@@ -2118,14 +2118,16 @@ function renderRanking(){
   const avFicha=p=>{const ph=photoSrc(p.num);return ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="">`:`<span class="n">${p.num}</span>`;};
   const isZ=p=>!hasVal(p)||!(+p[metric]);
   const med=["mg","ms","mb"];
+  const rk=p=>1+data.filter(x=>sv(x)>sv(p)).length;
+  const mc=p=>(!isZ(p)&&rk(p)<=3)?med[rk(p)-1]:"";
   $("#podium").innerHTML=data.slice(0,3).map((p,i)=>{
     const ph=photoSrc(p.num);
-    return `<div class="pst ${i===0?'first':''}">${ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}">`:''}<span class="pst-ph">${p.num}</span><i class="pst-c ${med[i]}"></i>
+    return `<div class="pst ${i===0?'first':''}">${ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}">`:''}<span class="pst-ph">${p.num}</span>${mc(p)?`<i class="pst-c ${mc(p)}"></i>`:""}
       <div class="pst-b"><div class="pst-id"><span class="pst-n">#${p.num}</span><span class="pst-nm">${p.nombre}</span></div><div class="pst-v">${show(p)}<small>${unit.toUpperCase()}</small></div></div></div>`;}).join("");
   $("#rankList").innerHTML=`<div class="rl-h"><span>#</span><span>Jugador</span><span>${(unit||"").toUpperCase()}</span></div>`+data.map((r,i)=>{
     const ph=photoSrc(r.num);
-    const pos=i<3&&!isZ(r)?`<i class="rl-m ${med[i]}"></i>`:`${i+1}`;
-    return `<div class="rl ${i<3&&!isZ(r)?'top':''} ${isZ(r)?'z':''}"><span class="n">${pos}</span><div class="pl"><span class="av">${ph?`<img src="${ph}" style="${pstyle(r.num)}" alt="">`:''}</span><span class="rl-nm">${r.nombre} <small>#${r.num}</small></span></div><b>${show(r)}</b></div>`;}).join("");
+    const m=mc(r);const pos=m?`<i class="rl-m ${m}" title="${rk(r)}°"></i>`:`${rk(r)}`;
+    return `<div class="rl ${m?'top':''} ${isZ(r)?'z':''}"><span class="n">${pos}</span><div class="pl"><span class="av">${ph?`<img src="${ph}" style="${pstyle(r.num)}" alt="">`:''}</span><span class="rl-nm">${r.nombre} <small>#${r.num}</small></span></div><b>${show(r)}</b></div>`;}).join("");
 }
 function fillGameSelector(){
   const gs=games();
