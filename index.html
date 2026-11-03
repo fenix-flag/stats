@@ -533,6 +533,29 @@
   #seasonTable th[data-k="num"],#seasonTable td.tdnum,#gameTable th[data-k="num"],#gameTable td.tdnum{width:44px;min-width:44px;max-width:44px;padding-left:4px;padding-right:4px;box-sizing:border-box}
   #seasonTable thead th[data-k="num"],#seasonTable thead th[data-k="nombre"],#gameTable thead th[data-k="num"],#gameTable thead th[data-k="nombre"]{background:var(--panel)!important;z-index:3}
   #seasonTable tr.total td.tdnum,#seasonTable tr.total td.tdn,#gameTable tr.total td.tdnum,#gameTable tr.total td.tdn{background:#2A1D11!important}
+  /* ---- explicación de medallas ---- */
+  .med-how{margin-left:auto;background:none;border:1px solid var(--line-2);border-radius:999px;color:var(--muted);font:700 12px var(--font-body,inherit);padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .med-how:hover{color:var(--ink);border-color:var(--accent)}
+  .med-how i,.med-ib{font-style:normal;border-radius:50%;border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font:700 10px var(--font-mono)}
+  .med-how i{width:16px;height:16px}
+  .med-ib{width:26px;height:26px;font-size:13px;background:none;color:var(--muted);border-color:var(--line-2);cursor:pointer;margin-left:10px}
+  .med-ib:hover{color:var(--ink);border-color:var(--accent)}
+  .mi-ov{position:fixed;inset:0;z-index:100;background:rgba(5,5,7,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+  .mi-box{background:var(--panel);border:1px solid var(--line-2);border-top:3px solid var(--accent);border-radius:4px;padding:18px 20px;max-width:560px;width:100%;max-height:90vh;overflow:auto;color:var(--ink)}
+  .mi-box h3{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:22px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+  .mi-x{margin-left:auto;background:none;border:0;color:var(--muted);font:700 18px var(--font-mono);cursor:pointer;padding:4px 6px}
+  .mi-m{display:inline-block;width:14px;height:14px;border-radius:50%;flex:none}
+  .mi-box p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 14px}.mi-box p b,.mi-rule b{color:var(--ink)}
+  .mi-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+  .mi-h{font-family:var(--font-display);font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .mi-cols .d .mi-h{color:var(--def)}
+  .mi-cols ul{list-style:none;margin:0;padding:0}.mi-cols li{font-size:14px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .mi-rule{padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:14px;line-height:1.45;color:var(--muted)}
+  .mi-ex{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .mi-ex span{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--font-mono);color:var(--ink);background:var(--panel-2,#1C1D22);border:1px solid var(--line);border-radius:3px;padding:4px 8px}
+  .mi-ex span.n{color:#5A5C63}
+  .mi-small{font-size:12px;color:#5A5C63;margin-top:10px}
+  @media(max-width:560px){.mi-cols{gap:12px}.mi-cols li{font-size:13px;padding:4px 0}}
 </style>
 </head>
 <body>
@@ -576,7 +599,7 @@
   </section>
 
   <section class="panel-view" id="view-ranking" role="tabpanel">
-    <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Tabla de líderes</h2></div>
+    <div class="section-head"><span class="flag-tail" aria-hidden="true"></span><h2>Tabla de líderes</h2><button type="button" class="med-ib" data-medinfo="rank" aria-label="Cómo funcionan los colores">?</button></div>
     <div class="metric-row"><label for="metric">Ordenar por</label>
       <select id="metric">
         <optgroup label="General">
@@ -2207,7 +2230,7 @@ function renderPlayer(){
   if(defAct>0) readRows.push({lbl:"Defensa",cls:"d",cards:[["Flags",s.flagBien],["Deflec",s.deflec],["Intercep",s.intercep]]});
   const pasePairs=[["Comp / Inc",`${s.com} / ${s.inc}`],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"],["Yds pase",s.passYD],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD pase",s.pasTD],["PE pase",s.pasPE]];
   const recPairs=[["Recep",s.recComp],["Drops",s.drop],["% Rec",s._dRecTot?Math.round(s.recPct)+"%":"—"],["Yds recep",s.ydRec],["Corridas",s.runs],["Yds corr",s.runYD],["Amagues",s.amagues],["TD",s.td],["PE",s.peComp]];
-  const defPairs=[["Flags",s.flagBien],["% Flag",s._dFlagTot?Math.round(s.flagPct)+"%":"—"],["Deflec",s.deflec],["Intercep",s.intercep],["Pick 6",s.pick6],["Sacks",s.sack],["Safety",s.safety],["Faltas",s.dfaltH]];
+  const defPairs=[["Flags",s.flagBien],["% Flag",s._dFlagTot?Math.round(s.flagPct)+"%":"—"],["Deflec",s.deflec],["Intercep",s.intercep],["Pick 6",s.pick6],["Sacks",s.sack],["Safety",s.safety],["Pick 2",s.pick2],["Faltas",s.dfaltH]];
   /* ---- ficha póster ---- */
   const ofAct=(s._dTotal||0)+(s.recTot||0)+(s.runs||0), dfAct=(s.flagTot||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0);
   const totAct=ofAct+dfAct, share=totAct?ofAct/totAct:0;
@@ -2218,7 +2241,7 @@ function renderPlayer(){
     mk("recComp","Recepciones",s.recComp,s.recTot?`${s.recComp} de ${s.recTot}`:"",1),mk("ydRec","Yds recep",s.ydRec,"",1),mk("runYD","Yds corrida",s.runYD,s.runs?`${s.runs} corridas`:"",1),
     mk("com","Pases compl.",s.com,s._dTotal?`${s.com} de ${s._dTotal}`:"",1),mk("passYD","Yds pase",s.passYD,"",1),mk("amagues","Amagues",s.amagues,"",1)];
   const defT=[mk("flagBien","Flags",s.flagBien,"",1),{k:"flagPct",l:"% Flags",v:s._dFlagTot?Math.round(s.flagPct)+"%":0,sub:s._dFlagTot?`${s.flagBien} de ${s.flagTot}`:"",r:99},
-    mk("deflec","Deflecciones",s.deflec,"",1),mk("intercep","Intercep.",s.intercep,"",1),mk("pick6","Pick 6",s.pick6,"",1),mk("sack","Sacks",s.sack,"",1),mk("safety","Safety",s.safety,"",1)];
+    mk("deflec","Deflecciones",s.deflec,"",1),mk("intercep","Intercep.",s.intercep,"",1),mk("pick6","Pick 6",s.pick6,"",1),mk("sack","Sacks",s.sack,"",1),mk("safety","Safety",s.safety,"",1),mk("pick2","Pick 2",s.pick2,"",0)];
   const tiles=pfTab==="def"?defT:offT;
   const nz=t=>t.v!==0&&t.v!=="0";
   const hasOff=offT.some(nz), hasDef=defT.some(nz);
@@ -2236,7 +2259,7 @@ function renderPlayer(){
       <div class="pp-meta">${p.pos?`<span class="pp-pos">${p.pos}</span>`:''}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
       </div></div>
     <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button></div>
-      ${body}<div class="pp-medals">${medalsH}</div></div></div>
+      ${body}<div class="pp-medals">${medalsH}<button type="button" class="med-how" data-medinfo="full"><i>?</i>¿Cómo se ganan?</button></div></div></div>
     <div class="pf-grids"><div class="pf-grid o"><h3>Pases</h3><div class="kvs">${pasePairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid o"><h3>Recepciones y corridas</h3><div class="kvs">${recPairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid d"><h3>Defensa</h3><div class="kvs">${defPairs.map(x=>kv(x[0],x[1])).join("")}</div></div></div>
@@ -2503,6 +2526,29 @@ document.addEventListener('error',function(e){var img=e.target;if(!(img instance
   var cls=['fx-logo','liga-logo','po-logo','am-logo','sb-logo'];var host=img.closest('.liga-logo')||img;var c=cls.find(function(k){return host.classList.contains(k)});if(!c)return;
   var row=img.closest('.fx-side,.po-side,.am-side,.sb-team,.liga-team');var nm=row&&row.textContent.trim();
   var ph=document.createElement('span');ph.className=c+' ph';ph.textContent=((nm||'?')[0]||'?').toUpperCase();host.replaceWith(ph);},true);
+
+/* ---- explicación de medallas (modal) ---- */
+function medInfoHTML(kind){
+  const dots='<i class="mi-m mg"></i><i class="mi-m ms"></i><i class="mi-m mb"></i>';
+  const ex='<div class="mi-ex"><span><i class="mi-m mg"></i>3 defl.</span><span><i class="mi-m mg"></i>3 defl.</span><span><i class="mi-m mb"></i>2 defl.</span><span class="n">1 defl. · 4°</span></div>';
+  if(kind==="rank")return `<h3>${dots}Colores del ranking<button class="mi-x" data-mi-close aria-label="Cerrar">✕</button></h3>
+    <p>El color marca el <b>podio del equipo</b> en la categoría elegida, con al menos 1. Los empatados comparten puesto y color, y el que sigue queda en su puesto real.</p>${ex}
+    <div class="mi-small">Las medallas que se cuentan en la Ficha por jugador salen solo de las categorías que figuran en "¿Cómo se ganan?".</div>`;
+  const A=["TD","TD de pase","Puntos extra","Pases completos","Yardas de pase","Recepciones","Yardas de recepción","Yardas de corrida","Amagues"];
+  const D=["Flags","Deflecciones","Intercepciones","Pick 6","Sacks","Safety"];
+  return `<h3>${dots}Medallas<button class="mi-x" data-mi-close aria-label="Cerrar">✕</button></h3>
+    <p>Se ganan quedando entre los <b>tres mejores del equipo</b> en el torneo, en cualquiera de estas categorías, con al menos 1.</p>
+    <div class="mi-cols"><div><div class="mi-h">Ataque</div><ul>${A.map(x=>`<li>${x}</li>`).join("")}</ul></div><div class="d"><div class="mi-h">Defensa</div><ul>${D.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>
+    <div class="mi-rule"><b>Empates:</b> los empatados comparten la medalla y el que sigue queda en su puesto real, como en los Juegos Olímpicos.${ex}</div>
+    <div class="mi-small">No dan medalla: puntos anotados, puntos generados ni Pick 2.</div>`;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-medinfo]");
+  if(b){const o=document.createElement("div");o.className="mi-ov";o.innerHTML=`<div class="mi-box" role="dialog" aria-modal="true">${medInfoHTML(b.dataset.medinfo)}</div>`;document.body.appendChild(o);return;}
+  const ov=e.target.closest(".mi-ov");
+  if(ov&&(e.target===ov||e.target.closest("[data-mi-close]")))ov.remove();
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".mi-ov").forEach(x=>x.remove());});
 </script>
 </body>
 </html>
