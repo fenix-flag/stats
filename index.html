@@ -556,6 +556,16 @@
   .mi-ex span.n{color:#5A5C63}
   .mi-small{font-size:12px;color:#5A5C63;margin-top:10px}
   @media(max-width:560px){.mi-cols{gap:12px}.mi-cols li{font-size:13px;padding:4px 0}}
+  /* ---- copas ---- */
+  .po-cup{margin-bottom:28px;padding-top:6px}
+  .po-cup-h{font-family:var(--font-display);font-weight:800;text-transform:uppercase;font-size:22px;letter-spacing:.04em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .po-cup-h::before{content:"";width:14px;height:14px;border-radius:50%;background:#F5C451}
+  .po-cup.plata .po-cup-h::before{background:#C9CDD3}
+  .po-cup.cons .po-cup-h::before{background:#5A5C63}
+  .po-cup .po-semis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .po-cup .po-semis>.po-match:only-child{grid-column:1/-1}
+  @media(max-width:560px){.po-cup .po-semis{grid-template-columns:1fr}}
+  .po-tbd .po-side-nm{color:var(--muted);font-style:italic}
 </style>
 </head>
 <body>
@@ -1654,7 +1664,7 @@ function loadFixture(csv){
   if(idx["Local"]===undefined||idx["Visitante"]===undefined)return false;
   const nn=(r,k)=>{const c=idx[k];if(c===undefined)return null;const v=String(r[c]??"").trim();if(v==="")return null;const n=parseInt(v,10);return isNaN(n)?null:n;};
   const tx=(r,k)=>(idx[k]!==undefined?String(r[idx[k]]??"").trim():"");
-  FIXTURE=rows.map(r=>({id:tx(r,"ID"),fecha:tx(r,"Fecha"),dia:tx(r,"Dia"),hora:tx(r,"Hora"),local:(r[idx["Local"]]||"").trim(),gl:nn(r,"GL"),visitante:(r[idx["Visitante"]]||"").trim(),gv:nn(r,"GV"),instancia:tx(r,"Instancia")})).filter(m=>m.local&&m.visitante);
+  FIXTURE=rows.map(r=>({id:tx(r,"ID"),fecha:tx(r,"Fecha"),dia:tx(r,"Dia"),hora:tx(r,"Hora"),local:(r[idx["Local"]]||"").trim(),gl:nn(r,"GL"),visitante:(r[idx["Visitante"]]||"").trim(),gv:nn(r,"GV"),instancia:tx(r,"Instancia"),cancha:(idx["Cancha"]!=null?(r[idx["Cancha"]]||"").trim():"")})).filter(m=>m.local&&m.visitante);
   return FIXTURE.length>0;
 }
 const isPlayoff=fch=>/semi|final|playoff|cuarto|repechaje/i.test(fch||"");
@@ -1771,6 +1781,23 @@ function renderPlayoffs(){
   const winnerOf=m=>{if(!m||m.gl==null||m.gv==null)return null;return m.gl>m.gv?m.local:(m.gv>m.gl?m.visitante:null);};
   const logo=name=>{const sr=logoSrc(name);return sr?`<img class="po-logo" src="${sr}">`:`<span class="po-logo ph">${(name[0]||'?').toUpperCase()}</span>`;};
   const teamRow=(name,score,win,dim)=>`<div class="po-team ${win?'po-win':''} ${dim?'po-lose':''}">${logo(name)}<span class="po-nm">${name}</span><span class="po-sc">${score==null?'—':score}</span></div>`;
+  /* torneos con varias copas: los partidos de eliminación dicen Oro / Plata / Consolación en la Fecha */
+  const cupOf=m=>{const f=(m.fecha||"").toLowerCase();return /oro/.test(f)?"Copa de Oro":/plata/.test(f)?"Copa de Plata":/consolaci/.test(f)?"Consolación":null;};
+  const cupMs=FIXTURE.filter(cupOf);
+  if(cupMs.length){
+    const isMk=n=>/^\d+\s*°\s|^(ganador|perdedor)\s/i.test(n||"");
+    const rondaOf=m=>{const f=(m.fecha||"").toLowerCase();return /cuarto/.test(f)?"Cuartos de final":/semi/.test(f)?"Semifinales":/3er|tercer/.test(f)?"3er puesto":/final/.test(f)?"Final":"Partidos";};
+    const RONDAS=["Cuartos de final","Semifinales","3er puesto","Final","Partidos"];
+    const sideC=(n,s,cls)=>isMk(n)?`<div class="po-side po-tbd"><span class="po-logo ph">?</span><div class="po-side-nm">${n}</div></div>`:`<div class="po-side ${cls}">${logo(n)}<div class="po-side-nm">${n}</div></div>`;
+    const duelC=(m,big)=>{const played=m.gl!=null&&m.gv!=null;const w=played?(m.gl>m.gv?"L":m.gv>m.gl?"V":null):null;
+      const sc=played?`<span class="po-n">${m.gl}</span><span class="po-dash">-</span><span class="po-n">${m.gv}</span>`:`<span class="po-vs">vs</span>`;
+      const champ=big&&w?(w==="L"?m.local:m.visitante):null;
+      return `<div class="po-match ${big?'po-finalm':''}"><div class="po-col-h">${[m.hora,m.cancha].filter(Boolean).join(" · ")||"&nbsp;"}</div><div class="po-duel">${sideC(m.local,m.gl,w==="L"?"po-s-win":w?"po-s-lose":"")}<div class="po-mid ${big?'big':''}"><div class="po-score">${sc}</div>${champ?`<div class="po-champtag">Campeón</div>`:""}</div>${sideC(m.visitante,m.gv,w==="V"?"po-s-win":w?"po-s-lose":"")}</div></div>`;};
+    el.innerHTML=["Copa de Oro","Copa de Plata","Consolación"].filter(c=>cupMs.some(m=>cupOf(m)===c)).map(c=>{
+      const ms=cupMs.filter(m=>cupOf(m)===c);
+      return `<div class="po-cup ${c==="Copa de Oro"?"oro":c==="Copa de Plata"?"plata":"cons"}"><h3 class="po-cup-h">${c}</h3>`+RONDAS.filter(r=>ms.some(m=>rondaOf(m)===r)).map(r=>`<div class="po-sec ${r==="Final"?"gold":""}">${r}</div><div class="po-semis">${ms.filter(m=>rondaOf(m)===r).map(m=>duelC(m,r==="Final")).join("")}</div>`).join("")+`</div>`;}).join("");
+    return;
+  }
   // arma una llave a partir de dos equipos esperados + el partido real (si existe)
   const bracket=(hi,lo,list)=>{
     const m=findM(list,hi,lo);
