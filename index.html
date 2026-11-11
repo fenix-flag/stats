@@ -588,6 +588,12 @@
     #ligaTablaWrap .liga-team{font-size:16px;gap:10px}#ligaTablaWrap .liga-logo{width:48px;height:48px}
     .fx-t{font-size:15px}.fx-logo,.fx-logo.ph{width:36px;height:36px}.fx-s{font-size:20px}
     .po-logo,.po-logo.ph{width:84px;height:84px}.po-side-nm{font-size:16px}}
+  :root{--line-2:#34363D}
+  .pp-meta{align-items:center}
+  .pp-pos.main{background:var(--accent);border-color:var(--accent);color:#1A0B02}
+  .pp-pos.o{color:var(--accent-ink);border-color:rgba(249,115,22,.5)}
+  .pp-pos.d{color:var(--def);border-color:rgba(184,178,245,.5)}
+  .pp-psep{width:1px;height:16px;background:var(--line-2);margin:0 2px}
 </style>
 </head>
 <body>
@@ -1909,6 +1915,19 @@ const DEF_GAME={off:{k:"num",dir:1},def:{k:"num",dir:1}};
 const DEF_PLOG={k:"game",dir:1};
 function nextSort(c,d,k){if(c.k!==k)return{k,dir:-1};if(c.dir===-1)return{k,dir:1};return{k:d.k,dir:d.dir};}
 
+/* ---- posiciones de flag 5v5 ---- */
+const POS_DEF_SET=new Set(["RUSH","LB","COR","SAF"]);
+const POS_ALIAS={C:"CEN",CENTRO:"CEN",CENTER:"CEN",RUSHER:"RUSH",CORNER:"COR",CB:"COR",SAFETY:"SAF",S:"SAF",MARISCAL:"QB",RECEPTOR:"WR"};
+const normPos=p=>{const k=String(p||"").trim().toUpperCase();return POS_ALIAS[k]||k;};
+const posList=(principal,txt)=>{const out=[];[principal].concat(String(txt||"").split(/[,;\/]+/)).map(normPos).forEach(x=>{if(x&&!out.includes(x))out.push(x);});return out;};
+let BIBPOS={};
+function loadBibPos(csv){
+  BIBPOS={};
+  let t;try{t=tableFromCSV(csv);}catch(e){return;}
+  const {idx,rows}=t;if(idx["ID"]===undefined)return;
+  rows.forEach(r=>{const pr=normPos(r[idx["Posicion"]]);const l=posList(pr,idx["Posiciones"]!==undefined?r[idx["Posiciones"]]:"");const v={pos:pr,list:l};
+    const id=(r[idx["ID"]]||"").trim();if(id)BIBPOS["id:"+id]=v;const nm=nkey(r[idx["Nombre"]]);if(nm)BIBPOS["nm:"+nm]=v;});
+}
 function loadRoster(csv){
   PHOTO_URL={}; SHEET_ADJ={};
   const {idx,rows}=tableFromCSV(csv);
@@ -1916,7 +1935,10 @@ function loadRoster(csv){
     const num=numId(r[idx["Numero"]]);
     const foto=(idx["Foto"]!==undefined?(r[idx["Foto"]]||"").trim():"");
     if(num!==null && foto) PHOTO_URL[num]=foto;
-    return {num,nombre:(r[idx["Nombre"]]||"").trim(),pos:(r[idx["Posicion"]]||"").trim()};
+    const nombre=(r[idx["Nombre"]]||"").trim(), jid=(idx["JugadorID"]!==undefined?(r[idx["JugadorID"]]||"").trim():"");
+    const b=BIBPOS["id:"+jid]||BIBPOS["nm:"+nkey(nombre)];
+    const pos=b&&b.pos?b.pos:normPos(r[idx["Posicion"]]);
+    return {num,nombre,pos,posList:b?b.list:(pos?[pos]:[])};
   }).filter(p=>p.num!==null);
 }
 function loadFotos(csv){
@@ -2307,7 +2329,7 @@ function renderPlayer(){
   const ppImg=ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}">`:`<span class="pp-ph">${p.num}</span>`;
   box.innerHTML=`<div class="pp">
     <div class="pp-left">${ppImg}<div class="pp-id"><div class="pp-num">${p.num}</div><div class="pp-name">${p.nombre}</div>
-      <div class="pp-meta">${p.pos?`<span class="pp-pos">${p.pos}</span>`:''}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
+      <div class="pp-meta">${(p.posList||[]).map((x,i)=>{const d=POS_DEF_SET.has(x);const prevD=i>0&&POS_DEF_SET.has(p.posList[i-1]);return `${i>0&&d!==prevD?'<span class="pp-psep"></span>':''}<span class="pp-pos ${i===0?'main':d?'d':'o'}">${x}</span>`;}).join("")}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
       </div></div>
     <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button></div>
       ${body}<div class="pp-medals">${medalsH}<button type="button" class="med-how" data-medinfo="full"><i>?</i>¿Cómo se ganan?</button></div></div></div>
@@ -2531,6 +2553,7 @@ async function loadIndex(indexId){
       activa:(I["activa"]!==undefined?(r[I["activa"]]||"").trim().toUpperCase():"SI")
     })).filter(x=>x.temporada&&x.id&&x.activa!=="NO");
     INDEX=rows.length?rows:null;
+    try{const bcsv=await fetch(gviz(id,"Biblioteca_Jugadores")).then(r=>r.ok?r.text():"");if(bcsv.trim())loadBibPos(bcsv);}catch(e){}
   }catch(e){INDEX=null;}
 }
 function seasonsForGender(){const gg=gender==="f"?"femenino":"masculino";return [...new Set(INDEX.filter(r=>r.genero.toLowerCase()===gg).map(r=>r.temporada))].sort().reverse();}
