@@ -1919,7 +1919,8 @@ function nextSort(c,d,k){if(c.k!==k)return{k,dir:-1};if(c.dir===-1)return{k,dir:
 const POS_DEF_SET=new Set(["RUSH","LB","COR","SAF"]);
 const POS_ALIAS={C:"CEN",CENTRO:"CEN",CENTER:"CEN",RUSHER:"RUSH",CORNER:"COR",CB:"COR",SAFETY:"SAF",S:"SAF",MARISCAL:"QB",RECEPTOR:"WR"};
 const normPos=p=>{const k=String(p||"").trim().toUpperCase();return POS_ALIAS[k]||k;};
-const posList=(principal,txt)=>{const out=[];[principal].concat(String(txt||"").split(/[,;\/]+/)).map(normPos).forEach(x=>{if(x&&!out.includes(x))out.push(x);});return out;};
+const POS_ORD=["QB","CEN","WR","RUSH","LB","COR","SAF"];
+const posList=(principal,txt)=>{const out=[];[principal].concat(String(txt||"").split(/[,;\/]+/)).map(normPos).forEach(x=>{if(x&&!out.includes(x))out.push(x);});if(out.length<2)return out;const o=i=>{const k=POS_ORD.indexOf(i);return k<0?99:k;};return [out[0]].concat(out.slice(1).sort((a,b)=>o(a)-o(b)));};
 let BIBPOS={};
 function loadBibPos(csv){
   BIBPOS={};
@@ -2329,7 +2330,7 @@ function renderPlayer(){
   const ppImg=ph?`<img src="${ph}" style="object-fit:cover;${pstyleF(p.num)}" alt="${p.nombre}">`:`<span class="pp-ph">${p.num}</span>`;
   box.innerHTML=`<div class="pp">
     <div class="pp-left">${ppImg}<div class="pp-id"><div class="pp-num">${p.num}</div><div class="pp-name">${p.nombre}</div>
-      <div class="pp-meta">${(p.posList||[]).map((x,i)=>{const d=POS_DEF_SET.has(x);const prevD=i>0&&POS_DEF_SET.has(p.posList[i-1]);return `${i>0&&d!==prevD?'<span class="pp-psep"></span>':''}<span class="pp-pos ${i===0?'main':d?'d':'o'}">${x}</span>`;}).join("")}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
+      <div class="pp-meta">${(p.posList||[]).map((x,i)=>{const d=POS_DEF_SET.has(x);const prevD=i>1&&POS_DEF_SET.has(p.posList[i-1]);return `${i===1||(i>1&&d!==prevD)?'<span class="pp-psep"></span>':''}<span class="pp-pos ${i===0?'main':d?'d':'o'}">${x}</span>`;}).join("")}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
       </div></div>
     <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button></div>
       ${body}<div class="pp-medals">${medalsH}<button type="button" class="med-how" data-medinfo="full"><i>?</i>¿Cómo se ganan?</button></div></div></div>
