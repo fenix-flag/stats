@@ -566,6 +566,28 @@
   .po-cup .po-semis>.po-match:only-child{grid-column:1/-1}
   @media(max-width:560px){.po-cup .po-semis{grid-template-columns:1fr}}
   .po-tbd .po-side-nm{color:var(--muted);font-style:italic}
+  /* ---- Torneo: tamaño grande ---- */
+  #ligaTablaWrap td,#ligaTablaWrap th{font-size:17px}
+  #ligaTablaWrap th{font-size:12px}
+  #ligaTablaWrap .liga-team{font-size:20px;gap:14px}
+  #ligaTablaWrap .liga-logo{width:68px;height:68px}
+  .liga-logo.ph{font-size:22px}
+  .fx-game{padding:12px 14px;gap:12px}
+  .fx-t{font-size:18px}
+  .fx-hora{font-size:14px;min-width:52px}
+  .fx-logo,.fx-logo.ph{width:52px;height:52px}
+  .fx-logo.ph{font-size:20px}
+  .fx-s{font-size:24px;width:96px}
+  .po-logo,.po-logo.ph{width:120px;height:120px}
+  .po-logo.ph{font-size:34px}
+  .po-side-nm{font-size:21px;margin-top:10px}
+  .po-score{font-size:clamp(30px,6vw,46px)}
+  .po-mid.big .po-score{font-size:clamp(40px,8vw,60px)}
+  @media(max-width:560px){
+    #ligaTablaWrap td,#ligaTablaWrap th{font-size:14px;padding:10px 6px}
+    #ligaTablaWrap .liga-team{font-size:16px;gap:10px}#ligaTablaWrap .liga-logo{width:48px;height:48px}
+    .fx-t{font-size:15px}.fx-logo,.fx-logo.ph{width:36px;height:36px}.fx-s{font-size:20px}
+    .po-logo,.po-logo.ph{width:84px;height:84px}.po-side-nm{font-size:16px}}
 </style>
 </head>
 <body>
@@ -1644,6 +1666,7 @@ function resultsFromFixture(){
 }
 function labelOf(part){const r=RESULTS.find(x=>x.partido===part);if(r&&r.label)return r.label;const m=/-(\d+)\s*$/.exec(part||"");return m?("Partido "+parseInt(m[1],10)):part;}
 /* ===== Liga: fixture + tabla ===== */
+const nkey=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLowerCase();
 let POSICIONES=[], FIXTURE=[], ligaView="tabla", fxFilter="__all__";
 function loadPosiciones(csv){
   POSICIONES=[];
@@ -1665,6 +1688,7 @@ function loadFixture(csv){
   const nn=(r,k)=>{const c=idx[k];if(c===undefined)return null;const v=String(r[c]??"").trim();if(v==="")return null;const n=parseInt(v,10);return isNaN(n)?null:n;};
   const tx=(r,k)=>(idx[k]!==undefined?String(r[idx[k]]??"").trim():"");
   FIXTURE=rows.map(r=>({id:tx(r,"ID"),fecha:tx(r,"Fecha"),dia:tx(r,"Dia"),hora:tx(r,"Hora"),local:(r[idx["Local"]]||"").trim(),gl:nn(r,"GL"),visitante:(r[idx["Visitante"]]||"").trim(),gv:nn(r,"GV"),instancia:tx(r,"Instancia"),cancha:(idx["Cancha"]!=null?(r[idx["Cancha"]]||"").trim():"")})).filter(m=>m.local&&m.visitante);
+  {const canon={};POSICIONES.forEach(p=>{canon[nkey(p.equipo)]=p.equipo;});FIXTURE.forEach(m=>{m.local=canon[nkey(m.local)]||m.local;m.visitante=canon[nkey(m.visitante)]||m.visitante;});}
   return FIXTURE.length>0;
 }
 const isPlayoff=fch=>/semi|final|playoff|cuarto|repechaje/i.test(fch||"");
@@ -1851,7 +1875,7 @@ const TEAM_LOGOS={};
 function loadLogoAdj(){try{return JSON.parse(localStorage.getItem("fenixLogoAdj")||"{}")}catch(e){return {};}}
 let LOGO_ADJ=loadLogoAdj();
 function saveLogoAdj(){try{localStorage.setItem("fenixLogoAdj",JSON.stringify(LOGO_ADJ))}catch(e){}}
-function logoSrc(team){const t=(team||"").toLowerCase();const pos=POSICIONES.find(p=>p.equipo.toLowerCase()===t);if(pos&&pos.logo)return pos.logo;if(t==="fenix"){if(TEAM_LOGOS["fenix"])return TEAM_LOGOS["fenix"];const hl=document.querySelector(".team-logo");if(hl&&hl.getAttribute("src"))return hl.getAttribute("src");}return gender==="m"?(TEAM_LOGOS[t]||""):"";}
+function logoSrc(team){const t=(team||"").toLowerCase();const pos=POSICIONES.find(p=>nkey(p.equipo)===nkey(team));if(pos&&pos.logo)return pos.logo;if(t==="fenix"){if(TEAM_LOGOS["fenix"])return TEAM_LOGOS["fenix"];const hl=document.querySelector(".team-logo");if(hl&&hl.getAttribute("src"))return hl.getAttribute("src");}return gender==="m"?(TEAM_LOGOS[t]||""):"";}
 function logoAdjOf(t){return {z:100,x:50,y:50};}
 function logoStyle(t){const a=logoAdjOf(t);return `object-position:${a.x}% ${a.y}%;transform:scale(${a.z/100})`;}
 let logoSel=null;
