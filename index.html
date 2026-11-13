@@ -616,6 +616,13 @@
   .gsw .arr{width:42px;height:42px;border-radius:50%;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);font:700 22px var(--font-display);cursor:pointer}
   .gsw select{flex:0 1 320px;min-height:42px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
   .gdots{display:flex;gap:6px;margin-left:auto}.gdots i{width:8px;height:8px;border-radius:50%;background:var(--line-2)}.gdots i.on{background:var(--accent)}
+  .gtiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 12px}
+  .gtiles button{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--ink);cursor:pointer;min-height:58px}
+  .gtiles svg{width:26px;height:26px;flex:none;color:var(--muted)}
+  .gtiles b{display:block;font:800 16px var(--font-display);text-transform:uppercase;letter-spacing:.05em}
+  .gtiles small{color:var(--muted);font-size:12px}
+  .gtiles button.on{border-color:var(--accent);background:rgba(249,115,22,.12)}.gtiles button.on svg{color:var(--accent)}
+  .gtiles button:hover{border-color:var(--line-2)}
   .drives{display:flex;flex-direction:column;gap:6px}
   .dr{display:grid;grid-template-columns:76px 1fr 200px;gap:12px;align-items:center;font-size:13px}
   .dr .lb{color:var(--muted)}.dr .lb b{color:var(--ink);display:block;font-size:14px}
@@ -650,7 +657,7 @@
   #seasonMap{margin:0 0 12px}
   tr.pm-click{cursor:pointer}tr.pm-sel td{background:rgba(249,115,22,.14)!important}
   .pp-map{flex:1}
-  @media(max-width:900px){.pm-grid,.pm-grid.sm,.pm-wide{grid-template-columns:1fr}.destg{grid-template-columns:repeat(2,1fr)}.dr{grid-template-columns:60px 1fr}.dr .rs{grid-column:2;justify-content:flex-start}
+  @media(max-width:900px){.gtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.gtiles button{padding:10px;gap:8px;min-width:0}.gtiles b{font-size:14px;letter-spacing:.03em}.gtiles svg{width:22px;height:22px}.gtiles span{min-width:0}.gtiles b,.gtiles small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pm-grid,.pm-grid.sm,.pm-wide{grid-template-columns:1fr}.destg{grid-template-columns:repeat(2,1fr)}.dr{grid-template-columns:60px 1fr}.dr .rs{grid-column:2;justify-content:flex-start}
    .tteam .tn{display:none}.tteam{justify-content:space-between!important;padding:10px}.tlg{width:34px;height:34px}.tsc{font-size:26px;min-width:40px}.tcen{min-width:104px;padding:6px 8px}.tcen b{font-size:16px}.tvr{grid-template-columns:64px 1fr 64px}.gdots{display:none}.pm-hide{margin-left:0}}
 </style>
 </head>
@@ -739,7 +746,7 @@
     <div class="section-head"><h2>Detalle por partido</h2></div>
     <div class="metric-row" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><label for="gameSel">Partido</label><select id="gameSel"></select></div>
     <div id="gameTV"></div>
-    <div class="gsw" id="gameSw"><button class="arr" data-d="-1" aria-label="Anterior">‹</button><select id="gameSwSel" aria-label="Qué ver"></select><button class="arr" data-d="1" aria-label="Siguiente">›</button><div class="gdots" id="gameDots"></div></div>
+    <div class="gtiles" id="gameSw" role="tablist" aria-label="Qué ver del partido"></div>
     <div id="gamePane"></div>
     <div class="section-head" style="margin-top:26px"><h2>Jugadores</h2></div>
     <div class="cards" id="gameCards"></div>
@@ -2859,12 +2866,13 @@ function gamePaneHTML(part){const S=PMS.game,has=gamePlays(part).length>0,riv=ri
 function renderGameExtra(){if(!PM)return;const part=$("#gameSel").value;const tv=$("#gameTV");if(!tv)return;
  if(!part){tv.innerHTML="";$("#gamePane").innerHTML="";return;}
  tv.innerHTML=gameTVHTML(part);
- const sel=$("#gameSwSel");sel.innerHTML=GAME_TABS.map(([k,l])=>`<option value="${k}" ${PMS.game.tab===k?"selected":""}>${l}</option>`).join("");
- $("#gameDots").innerHTML=GAME_TABS.map(([k])=>`<i class="${PMS.game.tab===k?"on":""}"></i>`).join("");
+ const gp=gamePlays(part),has=gp.length>0;const nD=has?gameDrives(part).length:0,nA=has?scoringEvents(part).length:0,nM=gp.filter(p=>!p.pe&&(p.pt||p.fin)).length;
+ const sub={drives:has?`${nD} drive${nD===1?"":"s"}`:"sin datos",plays:has?`${nA} anotaci${nA===1?"ón":"ones"}`:"sin datos",dest:"10 categorías",mapa:has?`${nM} jugada${nM===1?"":"s"}`:"sin datos"};
+ const ICO={drives:"M3 12h18M3 6h12M3 18h8",plays:"M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z",dest:"M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3",mapa:"M4 4h16v16H4zM4 12h16M12 4v16"};
+ $("#gameSw").innerHTML=GAME_TABS.map(([k,l])=>`<button type="button" role="tab" aria-selected="${PMS.game.tab===k}" class="${PMS.game.tab===k?"on":""}" data-gt="${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICO[k]}"/></svg><span><b>${k==="dest"?"Destacados":k==="mapa"?"Mapa":l}</b><small>${sub[k]}</small></span></button>`).join("");
  $("#gamePane").innerHTML=gamePaneHTML(part);}
 function wireGameExtra(){const sw=$("#gameSw");if(!sw)return;
- sw.querySelectorAll(".arr").forEach(b=>b.onclick=()=>{const i=GAME_TABS.findIndex(t=>t[0]===PMS.game.tab);PMS.game.tab=GAME_TABS[(i+ +b.dataset.d+GAME_TABS.length)%GAME_TABS.length][0];renderGameExtra();});
- $("#gameSwSel").onchange=e=>{PMS.game.tab=e.target.value;renderGameExtra();};
+ sw.addEventListener("click",e=>{const b=e.target.closest("[data-gt]");if(!b)return;PMS.game.tab=b.dataset.gt;renderGameExtra();});
  $("#gamePane").addEventListener("click",e=>{const b=e.target.closest("button[data-pm]");if(!b)return;const k=b.dataset.pm;PMS.game[k]=b.dataset.v;if(k!=="view")PMS.game.pl="";renderGameExtra();});
  $("#gamePane").addEventListener("change",e=>{const s=e.target.closest("select[data-pm]");if(!s)return;PMS.game.pl=s.value;renderGameExtra();});
  $("#gameSel").addEventListener("change",()=>{PMS.game.pl="";});}
@@ -2887,9 +2895,9 @@ function seasonMapHTML(){const S=PMS.season,all=PM.plays().filter(p=>!p.anul),si
  const view=S.view==="zonas"?"zonas":"rutas";
  return `<div class="pm-card">${head(view==="zonas"?"Dónde nos completan":"Dónde sacamos los flags",[["rutas","Flags"],["zonas","Zonas"]])}<div class="pm-grid"><div>${PM.defSVG(d,view)}</div><div class="pm-side">${B("Flags",fl,`${fl+er?Math.round(fl/(fl+er)*100):0}% · ${er} errados`)+B("Deflecciones · Intercep.",`${d.filter(p=>p.res==="F").length} · ${d.filter(p=>p.res==="X").length}`)+B("Nos completaron",`${c.length}/${pas.length}`,pas.length?Math.round(c.length/pas.length*100)+"%":"")+B("Zona más débil",weak?weak[0]:"—",weak?`${weak[1][0]}/${weak[1][1]} completos`:"")+B("TD en contra",d.filter(p=>p.td).length)}</div></div></div>`;}
 function renderSeasonMap(){if(!PM)return;const el=$("#seasonMap");if(!el)return;const S=PMS.season;
- if(!S.show){el.innerHTML=`<button class="pm-show" data-sm="show">Ver mapa</button>`;return;}
+ if(!S.show){el.innerHTML=`<button class="pm-show" data-sm="show">Ver mapa</button>`;$("#seasonTable").querySelectorAll("tr.pm-sel").forEach(t=>t.classList.remove("pm-sel"));return;}
  el.innerHTML=seasonMapHTML();
- $("#seasonTable").querySelectorAll("tbody tr:not(.total)").forEach(tr=>{const n=(tr.querySelector(".tdnum")||{}).textContent;if(!n)return;tr.classList.add("pm-click");if(String(n).trim()===S.pl)tr.classList.add("pm-sel");tr.onclick=()=>{S.pl=S.pl===String(n).trim()?"":String(n).trim();renderSeasonMap();};});}
+ $("#seasonTable").querySelectorAll("tbody tr:not(.total)").forEach(tr=>{const n=(tr.querySelector(".tdnum")||{}).textContent;if(!n)return;tr.classList.add("pm-click");tr.classList.toggle("pm-sel",String(n).trim()===S.pl);tr.onclick=()=>{S.pl=S.pl===String(n).trim()?"":String(n).trim();renderSeasonMap();};});}
 function wireSeasonMap(){const el=$("#seasonMap");if(!el)return;el.addEventListener("click",e=>{const b=e.target.closest("[data-sm]");if(!b)return;const S=PMS.season,a=b.dataset.sm;
  if(a==="clr")S.pl="";if(a==="view")S.view=b.dataset.v;if(a==="hide")S.show=false;if(a==="show")S.show=true;renderSeasonMap();});
  $("#segSeason").addEventListener("click",()=>{PMS.season.pl="";PMS.season.view=seasonSide==="def"?"rutas":"zonas";setTimeout(renderSeasonMap,0);});}
