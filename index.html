@@ -674,6 +674,13 @@
   .gtiles{grid-template-columns:repeat(4,minmax(0,1fr))}.gtiles button{min-width:0}.gtiles span{min-width:0}.gtiles b,.gtiles small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   @media(max-width:900px){.gtiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .gtiles button{padding:12px;gap:10px}.gtiles b{font-size:16px;letter-spacing:.02em}
+  /* todo el bloque a ancho completo y números centrados en su columna */
+  .tvb{max-width:none;margin:6px 0 14px}
+  .gtiles{max-width:none;margin:0 0 14px}
+  #gamePane>.pm-empty{max-width:none}
+  .tvr,.tvr:nth-child(n){grid-template-columns:1fr minmax(160px,1fr) 1fr}
+  .tvr b{text-align:center}
+  .tvtop{grid-template-columns:1fr auto 1fr}
 </style>
 </head>
 <body>
