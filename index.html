@@ -681,6 +681,11 @@
   .tvr,.tvr:nth-child(n){grid-template-columns:1fr minmax(160px,1fr) 1fr}
   .tvr b{text-align:center}
   .tvtop{grid-template-columns:1fr auto 1fr}
+
+  .pm-lf{display:inline-flex;align-items:center;gap:0;background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;color:var(--ink);font:600 12px var(--font-body,inherit);cursor:pointer}
+  .pm-lf.off{opacity:.4;text-decoration:line-through}.pm-lf i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px}
+  #ppMap{margin-top:16px}#ppMap .pm-card{margin:0}
+  .pm-seg button.on.d{background:var(--def,#B8B2F5);color:#15112B;border-color:var(--def,#B8B2F5)}
 </style>
 </head>
 <body>
@@ -2123,7 +2128,8 @@ function playersForAll(part){
 function games(){
   const seen=[],set=new Set();
   OFF.rows.forEach(r=>{const g=(r[OFF.idx["Partido"]]||"").trim();if(g&&!set.has(g)){set.add(g);seen.push(g);}});
-  return seen;
+  const ord=g=>{let i=(RESULTS||[]).findIndex(x=>x.partido===g);if(i<0)i=(FIXTURE||[]).findIndex(m=>m.id&&m.id===g);return i<0?1e6+seen.indexOf(g):i;};
+  return seen.slice().sort((a,b)=>ord(a)-ord(b));
 }
 function teamRow(players,label){
   const t={nombre:label,pos:""};
@@ -2414,7 +2420,7 @@ function renderPlayer(){
   let bigK=null;if(tiles.length<=8){const m=tiles.filter(t=>t.r<=3).sort((a,b)=>a.r-b.r);if(m.length)bigK=m[0].k;}
   const mcls=r=>r===1?"m1":r===2?"m2":"m3";
   const tileH=t=>`<div class="pp-t ${t.k===bigK?'big':''} ${t.r<=3?'hl':''} ${nz(t)?'':'zero'}"><span class="pp-k">${t.l}</span>${t.r<=3?`<i class="pp-medal ${mcls(t.r)}" title="${t.r}° del equipo"></i>`:''}<div class="pp-mid"><b class="pp-v">${t.v}</b>${t.sub?`<div class="pp-s">${t.sub}</div>`:''}</div></div>`;
-  const body=pfTab==="map"?`<div class="pp-map">${playerMapHTML(p.num)}</div>`:(pfTab==="def"?hasDef:hasOff)
+  const body=(pfTab==="def"?hasDef:hasOff)
     ? `<div class="pp-grid ${tiles.length>9?'c4':''}">${(bigK?[tiles.find(t=>t.k===bigK),...tiles.filter(t=>t.k!==bigK)]:tiles).map(tileH).join("")}</div>`
     : `<div class="pp-empty"><b>Sin jugadas de ${pfTab==="def"?"defensa":"ataque"}</b><span>Todavía no tiene ${pfTab==="def"?"flags, deflecciones ni intercepciones":"pases, recepciones ni corridas"} cargadas.</span>${(pfTab==="def"?hasOff:hasDef)?`<button type="button" data-pft="${pfTab==="def"?"off":"def"}">Ver ${pfTab==="def"?"ataque":"defensa"}</button>`:''}</div>`;
   const nM=r=>badges.filter(b=>b.r===r).length;
@@ -2424,8 +2430,9 @@ function renderPlayer(){
     <div class="pp-left">${ppImg}<div class="pp-id"><div class="pp-num">${p.num}</div><div class="pp-name">${p.nombre}</div>
       <div class="pp-meta">${(p.posList||[]).map((x,i)=>{const d=POS_DEF_SET.has(x);const prevD=i>1&&POS_DEF_SET.has(p.posList[i-1]);return `${i===1||(i>1&&d!==prevD)?'<span class="pp-psep"></span>':''}<span class="pp-pos ${i===0?'main':d?'d':'o'}">${x}</span>`;}).join("")}${perfil?`<span class="pp-role ${share>=0.7?'o':share<=0.3?'d':''}">${perfil}</span>`:''}</div>
       </div></div>
-    <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button><button type="button" data-pft="map" class="${pfTab==="map"?'on':''}">Mapa</button></div>
+    <div class="pp-right"><div class="pp-tabs ${pfTab}"><button type="button" data-pft="off" class="${pfTab==="off"?'on':''} ${hasOff?'':'empty'}">Ataque${hasOff?'<i class="dot"></i>':''}</button><button type="button" data-pft="def" class="${pfTab==="def"?'on':''} ${hasDef?'':'empty'}">Defensa${hasDef?'<i class="dot d"></i>':''}</button></div>
       ${body}<div class="pp-medals">${medalsH}<button type="button" class="med-how" data-medinfo="full"><i>?</i>¿Cómo se ganan?</button></div></div></div>
+    <div id="ppMap">${playerMapHTML(p.num)}</div>
     <div class="pf-grids"><div class="pf-grid o"><h3>Pases</h3><div class="kvs">${pasePairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid o"><h3>Recepciones y corridas</h3><div class="kvs">${recPairs.map(x=>kv(x[0],x[1])).join("")}</div></div>
       <div class="pf-grid d"><h3>Defensa</h3><div class="kvs">${defPairs.map(x=>kv(x[0],x[1])).join("")}</div></div></div>
@@ -2433,7 +2440,6 @@ function renderPlayer(){
   const rows=playerGameLog(p.num).sort((a,b)=>{const va=a[plogSort.k],vb=b[plogSort.k];return typeof va==="string"?plogSort.dir*String(va).localeCompare(vb):plogSort.dir*(va-vb);});
   renderTable($("#plogTable"),PLOG_COLS,rows,null,plogSort,k=>{plogSort=nextSort(plogSort,DEF_PLOG,k);renderPlayer();});
   box.querySelectorAll("[data-pft]").forEach(b=>b.onclick=()=>{pfTab=b.dataset.pft;renderPlayer();});
-  box.querySelectorAll("[data-pp]").forEach(b=>b.onclick=()=>{if(b.disabled)return;PMS.player[b.dataset.pp]=b.dataset.v;renderPlayer();});
 }
 function renderFotos(){
   const list=[...ROSTER].sort((a,b)=>a.num-b.num);
@@ -2742,17 +2748,21 @@ var PM=(function(){
    p.pick6r=!!cv(OFF,r,"pick 6 rival");p.pick2r=!!cv(OFF,r,"pick 2 rival");p.int=!!cv(OFF,r,"intercep");
    out.push(p);});
   const fe={};
-  DEF.rows.forEach(r=>{if(cv(DEF,r,"tipo jugada"))return;const n=cv(DEF,r,"flag errado");if(!n)return;const k=cv(DEF,r,"Partido")+"#"+cv(DEF,r,"jugada");(fe[k]=fe[k]||[]).push(n);});
+  const dsv={};
+  DEF.rows.forEach(r=>{if(cv(DEF,r,"tipo jugada"))return;const k=cv(DEF,r,"Partido")+"#"+cv(DEF,r,"jugada");const n=cv(DEF,r,"flag errado");if(n)(fe[k]=fe[k]||[]).push(n);const v=cv(DEF,r,"pase desviado");if(v)dsv[k]=v;});
   DEF.rows.forEach(r=>{const tipo=cv(DEF,r,"tipo jugada");if(!tipo)return;
    const pe=cv(DEF,r,"down")==="PE"||cv(DEF,r,"situacion")==="PE";
    const p={side:"d",part:cv(DEF,r,"Partido"),jug:+cv(DEF,r,"jugada")||0,drive:+cv(DEF,r,"drive")||0,tipo,res:cv(DEF,r,"resultado"),spot:num(cv(DEF,r,"spot")),down:cv(DEF,r,"down"),tiempo:cv(DEF,r,"tiempo"),
     pt:pt(cv(DEF,r,"recep x,y")),fin:pt(cv(DEF,r,"fin x,y")),ret:pt(cv(DEF,r,"devolucion x,y")),pe,anul:!!cv(DEF,r,"jugada anulada")};
    p.flag=cv(DEF,r,"flag capturado");p.defl=cv(DEF,r,"pase desviado");p.intc=cv(DEF,r,"intercepcion");p.sack=cv(DEF,r,"sacks");
-   p.def=p.flag||p.defl||p.intc||p.sack;p.fe=fe[p.part+"#"+p.jug]||[];
+   p.def=p.flag||p.defl||p.intc||p.sack;p.fe=fe[p.part+"#"+p.jug]||[];p.dsv=dsv[p.part+"#"+p.jug]||"";
    p.pick6=cv(DEF,r,"pick 6");p.pick2=cv(DEF,r,"pick 2");p.safety=cv(DEF,r,"safety");
    p.td=!!(cv(DEF,r,"td rival")||cv(DEF,r,"pe rival"));p.pePts=pe?(+cv(DEF,r,"pe rival")||0):0;p.yd=num(cv(DEF,r,"yd rival"));
    out.push(p);});
   cache=out;cacheKey=key;return out;}
+ const HID={};const hid=k=>!!HID[k];
+ const lf=(k,col,txt)=>`<button type="button" class="pm-lf ${hid(k)?"off":""}" data-lf="${k}" aria-pressed="${!hid(k)}"><i style="background:${col}"></i>${txt}</button>`;
+ const rk=r=>r==="C"?"C":r==="X"?"X":"I";
  /* ---------- cancha relativa a la línea ---------- */
  const LOS=250,SC=10,P=(x,y)=>[x*SC,LOS-y*SC];
  const lane=x=>x<25/3?0:x<50/3?1:2,depth=y=>y<0?0:y<5?1:y<15?2:3;
@@ -2779,13 +2789,13 @@ var PM=(function(){
      heat+=`<rect x="${x1}" y="0" width="${x2-x1}" height="${LOS}" fill="rgba(${tc},${.06+.25*c.length/max})"/><rect x="${x1+12}" y="${y1}" width="${x2-x1-24}" height="${y2-y1}" rx="4" fill="rgba(${tc},.85)"/><text x="${(x1+x2)/2}" y="${y1-8}" text-anchor="middle" class="pm-z">${avg.toFixed(1)} yd</text><text x="${(x1+x2)/2}" y="${y1-24}" text-anchor="middle" class="pm-zs">${c.length} corridas</text>`;});}}
   let out=base(heat);
   if(view==="rutas"){const col={C:"#4ADE80",I:"#F87171",D:"#F87171",F:"#F87171",X:"#60A5FA"};const op=loc.length>60?.45:.75;
-   loc.forEach(p=>{if(type==="pase"){const r=rel(p),[x,y]=P(r.x,r.y),c=col[p.res]||"#F4F2EE";h+=`<line x1="${qx}" y1="${qy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="1.5" stroke-opacity="${op}" ${p.res!=="C"?'stroke-dasharray="4 3"':""}/>`;
+   loc.forEach(p=>{if(type==="pase"&&hid(rk(p.res)))return;if(hid("TD")&&!p.td)return;if(type==="pase"){const r=rel(p),[x,y]=P(r.x,r.y),c=col[p.res]||"#F4F2EE";h+=`<line x1="${qx}" y1="${qy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="1.5" stroke-opacity="${op}" ${p.res!=="C"?'stroke-dasharray="4 3"':""}/>`;
      if(p.res==="C"&&p.fin&&r.fy-r.y>.5){const[fx,fy]=P(r.fx,r.fy);h+=`<line x1="${x}" y1="${y}" x2="${fx}" y2="${fy}" stroke="${c}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/>`;}
      h+=p.td?`<circle cx="${x}" cy="${y}" r="5.5" fill="${c}" stroke="#F4F2EE" stroke-width="1.5"/>`:`<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;}
     else{const r=relRun(p),[fx,fy]=P(r.fx,Math.min(26,r.fy));h+=`<line x1="${qx}" y1="${qy}" x2="${fx}" y2="${fy}" stroke="rgb(${tc})" stroke-width="1.8" stroke-opacity="${op}"/><circle cx="${fx}" cy="${fy}" r="${p.td?5.5:3.4}" fill="rgb(${tc})" ${p.td?'stroke="#F4F2EE" stroke-width="1.5"':""}/>`;}});
    h+=`<circle cx="${qx}" cy="${qy}" r="8" fill="rgb(${tc})"/>`;out+=h;}
   const miss=d.length-loc.length;
-  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${type==="pase"?`<span><i style="background:#4ADE80"></i>Completo</span><span><i style="background:#F87171"></i>Incompleto / drop</span><span><i style="background:#60A5FA"></i>Intercepción</span><span>● grande = TD</span>`:`<span><i style="background:rgb(${tc})"></i>Corrida (hasta el flag)</span><span>● grande = TD</span>`}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
+  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${view==="zonas"?(type==="pase"?`<span>completos / intentos en cada zona</span>`:`<span>yardas promedio por carril</span>`):type==="pase"?lf("C","#4ADE80","Completo")+lf("I","#F87171","Incompleto / drop")+lf("X","#60A5FA","Intercepción")+lf("TD","#F4F2EE","Solo TD"):`<span><i style="background:rgb(${tc})"></i>Corrida (hasta el flag)</span>`+lf("TD","#F4F2EE","Solo TD")}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
  const box=(l,v,s)=>`<div class="pm-kp"><span class="pm-k">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
  function sideKPIs(d,type,role){
   if(type==="pase"){const c=d.filter(p=>p.res==="C"),yd=c.reduce((a,p)=>a+(p.yd||0),0);const z={};c.filter(p=>p.pt&&p.spot!=null).forEach(p=>{const r=rel(p);const k=LN[lane(r.x)]+", "+DN[depth(r.y)];z[k]=(z[k]||0)+1;});const top=Object.entries(z).sort((a,b)=>b[1]-a[1])[0];
@@ -2799,15 +2809,18 @@ var PM=(function(){
   const col={pase:"#4ADE80",corr:"#FDBA74",pick:"#60A5FA"};
   tds.forEach((t,i)=>{const y=12+((i*37)%(H-34));h+=`<line x1="${X(t.spot)}" x2="${X(52)}" y1="${y}" y2="${y}" stroke="${col[t.type]}" stroke-width="2" stroke-opacity=".75"/><circle cx="${X(t.spot)}" cy="${y}" r="4" fill="${col[t.type]}"/>`;});
   return `<svg class="pm-field" viewBox="0 0 ${W} ${H}">${h}</svg><div class="pm-leg"><span><i style="background:#4ADE80"></i>Pase</span><span><i style="background:#FDBA74"></i>Corrida</span><span><i style="background:#60A5FA"></i>Pick 6</span><span>● desde dónde arrancó la jugada</span></div>`;}
- function defSVG(d,view){if(view==="zonas")return mapSVG(d.filter(p=>p.tipo==="pase"),"pase","zonas","184,178,245");
-  let h=base("");h+=`<circle cx="125" cy="${LOS+30}" r="8" fill="#B8B2F5"/>`;
-  d.forEach(p=>{if(p.spot==null)return;const f=p.fin||p.pt;if(f&&p.flag&&!p.td){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<g transform="translate(${fx},${fy})"><line y1="0" y2="-9" stroke="#F4F2EE" stroke-width="1.2"/><path d="M0,-9 L7,-7 L0,-5Z" fill="#B8B2F5"/></g>`;}
-   if(p.pt&&(p.res==="F"||p.res==="X")){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${p.res==="X"?"#60A5FA":"#F87171"}" stroke="#0E0F12" stroke-width="1"/>`;}
-   if(p.td&&!p.pe&&f){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<circle cx="${fx}" cy="${fy}" r="5" fill="none" stroke="#F87171" stroke-width="2"/>`;}});
-  return `<svg class="pm-field" viewBox="0 0 250 320">${h}</svg><div class="pm-leg"><span>⚑ flag sacado</span><span><i style="background:#F87171"></i>pase desviado</span><span><i style="background:#60A5FA"></i>intercepción</span><span>◯ TD en contra</span></div>`;}
- return {plays,mapSVG,sideKPIs,anotSVG,defSVG,box,rel,LN,DN,lane,depth};
+ function defSVG(d,view,n){if(view==="zonas")return mapSVG(d.filter(p=>p.tipo==="pase"),"pase","zonas","184,178,245");
+  let h=base("");h+=`<circle cx="125" cy="${LOS+30}" r="8" fill="#B8B2F5"/>`;const me=v=>!n||v===n;
+  d.forEach(p=>{if(p.spot==null)return;const f=p.fin||p.pt;
+   if(p.pt&&p.dsv&&me(p.dsv)&&!hid("F")){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="#F87171" stroke-width="2"/>`;}
+   if(f&&p.flag&&!p.td&&me(p.flag)&&!hid("FL")){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<g transform="translate(${fx},${fy})"><line y1="0" y2="-9" stroke="#F4F2EE" stroke-width="1.2"/><path d="M0,-9 L7,-7 L0,-5Z" fill="#B8B2F5"/></g>`;}
+   if(p.pt&&((p.res==="F"&&me(p.defl)&&!hid("F"))||(p.res==="X"&&me(p.intc)&&!hid("X")))){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${p.res==="X"?"#60A5FA":"#F87171"}" stroke="#0E0F12" stroke-width="1"/>`;}
+   if(!n&&p.td&&!p.pe&&f&&!hid("TC")){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<circle cx="${fx}" cy="${fy}" r="5" fill="none" stroke="#F87171" stroke-width="2"/>`;}});
+  return `<svg class="pm-field" viewBox="0 0 250 320">${h}</svg><div class="pm-leg">${lf("FL","#B8B2F5","⚑ Flag sacado")+lf("F","#F87171","Pase desviado")+lf("X","#60A5FA","Intercepción")+(n?"":lf("TC","transparent;border:2px solid #F87171","◯ TD en contra"))}</div>`;}
+ function toggle(k){HID[k]=!HID[k];}
+ return {plays,mapSVG,sideKPIs,anotSVG,defSVG,box,rel,LN,DN,lane,depth,toggle};
 })();
-var PMS={game:{tab:"drives",team:"o",type:"pase",pl:"",view:"rutas"},season:{pl:"",view:"zonas",show:true},player:{role:null,view:"zonas"}};
+var PMS={game:{tab:"dest",team:"o",type:"pase",pl:"",view:"rutas"},season:{pl:"",view:"zonas",show:true},player:{role:null,view:"zonas",show:true,num:""}};
 const noMapMsg=w=>`<div class="pm-empty">${w}</div>`;
 const NO_DATA="Este partido se cargó con el anotador anterior: no tiene drives, minutos ni ubicaciones. Desde el anotador nuevo se completa todo.";
 const pmName=n=>{const p=ROSTER.find(x=>String(x.num)===String(n));return p?`#${n} ${p.nombre.split(" ")[0]}`:`#${n}`;};
@@ -2860,7 +2873,7 @@ function gameTVHTML(part){
   <div class="tcen ${wcls}"><span class="fin">Final</span><b>${word||"—"}</b><span>${esc(labelOf(part))}</span></div>
   <div class="tteam r"><b class="tsc">${rr==null?"?":rr}</b><span class="tn">${esc(riv)}</span>${rl?`<img class="tlg" src="${rl}" alt="">`:`<span class="tlg ph r">${ab(riv)}</span>`}</div></div>
   <div class="tvst"><div class="tvh">Estadísticas</div>${rows.map(([l,a,b])=>`<div class="tvr"><b class="f">${a}</b><span>${l}</span><b class="r">${b}</b></div>`).join("")}</div></div>`;}
-const GAME_TABS=[["drives","Drives"],["plays","Anotaciones"],["dest","Destacados del partido"],["mapa","Mapa de tendencias"]];
+const GAME_TABS=[["dest","Destacados del partido"],["plays","Anotaciones"],["drives","Drives"],["mapa","Mapa de tendencias"]];
 function gamePaneHTML(part){const S=PMS.game,has=gamePlays(part).length>0,riv=rivalOf(part);
  if(S.tab==="drives"){if(!has)return noMapMsg(NO_DATA);const D=gameDrives(part);if(!D.length)return noMapMsg("Sin drives.");
   const tag=t=>/TD|PICK/.test(t)?"#4ADE80":/INT/.test(t)?"#60A5FA":/4°|✕/.test(t)?"#F87171":"var(--muted)";
@@ -2875,16 +2888,21 @@ function gamePaneHTML(part){const S=PMS.game,has=gamePlays(part).length>0,riv=ri
   const cards=C.map(([l,k,f,m])=>{const b=best(k,f,m);if(!b)return k==="pick6"?"":`<div class="dc z"><span class="pm-k">${l}</span><b>—</b><span class="dj">sin datos</span></div>`;return `<div class="dc"><span class="pm-k">${l}</span><b>${b.v}</b><span class="dj">${esc(b.who)}</span></div>`;}).join("");
   return `<div class="pm-card"><div class="destg">${cards}</div></div>`;}
  if(!has)return noMapMsg(NO_DATA);
- const all=gamePlays(part).filter(p=>p.side===S.team&&!p.pe&&p.tipo===(S.type==="pase"?"pase":"corrida"));
+ if(S.type==="def"&&S.team!=="d")S.type="pase";
+ const all=gamePlays(part).filter(p=>p.side===S.team&&!p.pe&&(S.type==="def"||p.tipo===(S.type==="pase"?"pase":"corrida")));
  const keyQ=S.team==="o"?(S.type==="pase"?[["qb","Pasa"],["rec","Recibe"]]:[["run","Corre"]]):[["def","Defendió"]];
  const opts=keyQ.map(([k,l])=>{const ids=[...new Set(all.map(p=>p[k]).filter(Boolean))].sort((a,b)=>a-b);return ids.length?`<optgroup label="${l}">${ids.map(n=>`<option value="${k}:${n}" ${S.pl===k+":"+n?"selected":""}>${pmName(n)}</option>`).join("")}</optgroup>`:"";}).join("");
- let d=all;if(S.pl){const[k,v]=S.pl.split(":");d=d.filter(p=>p[k]===v);}
+ let d=all;if(S.pl){const[k,v]=S.pl.split(":");d=d.filter(p=>p[k]===v||(S.type==="def"&&(p.fe.includes(v)||p.dsv===v)));}
  const tc=S.team==="o"?"249,115,22":"184,178,245";
  return `<div class="pm-card"><div class="pm-bar"><div class="seg pm-seg"><button data-pm="team" data-v="o" class="${S.team==="o"?"on":""}">Fenix</button><button data-pm="team" data-v="d" class="${S.team==="d"?"on d":""}">${esc(riv)}</button></div>
-  <div class="seg pm-seg"><button data-pm="type" data-v="pase" class="${S.type==="pase"?"on":""}">Pases</button><button data-pm="type" data-v="corr" class="${S.type==="corr"?"on":""}">Corridas</button></div>
+  <div class="seg pm-seg"><button data-pm="type" data-v="pase" class="${S.type==="pase"?"on":""}">Pases</button><button data-pm="type" data-v="corr" class="${S.type==="corr"?"on":""}">Corridas</button>${S.team==="d"?`<button data-pm="type" data-v="def" class="${S.type==="def"?"on":""}">Nuestra defensa</button>`:""}</div>
   <select data-pm="pl"><option value="">${S.team==="o"?"Todos los jugadores":"Todo "+esc(riv)}</option>${opts}</select>
   <div class="seg pm-seg"><button data-pm="view" data-v="rutas" class="${S.view==="rutas"?"on":""}">Rutas</button><button data-pm="view" data-v="zonas" class="${S.view==="zonas"?"on":""}">Zonas</button></div></div>
-  <div class="pm-grid"><div>${PM.mapSVG(d,S.type,S.view,tc)}</div><div class="pm-side">${PM.sideKPIs(d,S.type,S.team==="d"?"rival":S.pl.startsWith("rec")?"rec":"qb")}</div></div></div>`;}
+  <div class="pm-grid"><div>${S.type==="def"?PM.defSVG(d,S.view==="zonas"?"zonas":"rutas",S.pl?S.pl.split(":")[1]:""):PM.mapSVG(d,S.type,S.view,tc)}</div><div class="pm-side">${S.type==="def"?defKPIs(d,S.pl?S.pl.split(":")[1]:""):PM.sideKPIs(d,S.type,S.team==="d"?"rival":S.pl.startsWith("rec")?"rec":"qb")}</div></div></div>`;}
+function defKPIs(d,n){const B=PM.box,me=v=>!n||v===n;const pas=d.filter(p=>p.tipo==="pase"),c=pas.filter(p=>p.res==="C");
+ const fl=d.filter(p=>p.flag&&me(p.flag)).length,er=d.reduce((a,p)=>a+p.fe.filter(me).length,0);
+ const df=d.filter(p=>p.res==="F"&&me(p.defl)).length+d.filter(p=>p.dsv&&me(p.dsv)).length,ic=d.filter(p=>p.res==="X"&&me(p.intc)).length,sk=d.filter(p=>p.tipo==="sack"&&me(p.sack)).length;
+ return B("Flags",fl,`${fl+er?Math.round(fl/(fl+er)*100):0}% · ${er} errado${er===1?"":"s"}`)+B("Desvíos · Intercep.",`${df} · ${ic}`)+B("Sacks",sk)+(n?"":B("Nos completaron",`${c.length}/${pas.length}`,pas.length?Math.round(c.length/pas.length*100)+"%":"")+B("TD en contra",d.filter(p=>p.td).length));}
 function renderGameExtra(){if(!PM)return;const part=$("#gameSel").value;const tv=$("#gameTV");if(!tv)return;
  if(!part){tv.innerHTML="";$("#gamePane").innerHTML="";return;}
  tv.innerHTML=gameTVHTML(part);
@@ -2925,13 +2943,18 @@ function wireSeasonMap(){const el=$("#seasonMap");if(!el)return;el.addEventListe
  $("#segSeason").addEventListener("click",()=>{PMS.season.pl="";PMS.season.view=seasonSide==="def"?"rutas":"zonas";setTimeout(renderSeasonMap,0);});}
 
 /* ---------- Ficha ---------- */
-function playerMapHTML(n){if(!PM)return "";const S=PMS.player,all=PM.plays().filter(p=>p.side==="o"&&!p.pe&&!p.anul);n=String(n);
- const R={qb:all.filter(p=>p.tipo==="pase"&&p.qb===n),rec:all.filter(p=>p.tipo==="pase"&&p.rec===n),run:all.filter(p=>p.tipo==="corrida"&&p.run===n)};
- if(!S.role||!R[S.role].length)S.role=["qb","rec","run"].sort((a,b)=>R[b].length-R[a].length)[0];
- if(!R.qb.length&&!R.rec.length&&!R.run.length)return noMapMsg("Sin jugadas con ubicación todavía. El mapa se arma con los partidos cargados en el anotador nuevo.");
- const type=S.role==="run"?"corr":"pase";
- return `<div class="pm-bar"><div class="seg pm-seg">${[["qb","QB"],["rec","Receptor"],["run","Corridas"]].map(([k,l])=>`<button data-pp="role" data-v="${k}" class="${S.role===k?"on":""}" ${R[k].length?"":"disabled"}>${l} · ${R[k].length}</button>`).join("")}</div><div class="seg pm-seg"><button data-pp="view" data-v="rutas" class="${S.view==="rutas"?"on":""}">Rutas</button><button data-pp="view" data-v="zonas" class="${S.view==="zonas"?"on":""}">Zonas</button></div></div>
-  <div class="pm-grid sm"><div>${PM.mapSVG(R[S.role],type,S.view)}</div><div class="pm-side">${PM.sideKPIs(R[S.role],type,S.role)}</div></div>`;}
+function playerMapHTML(n){if(!PM)return "";const S=PMS.player;n=String(n);S.num=n;const all=PM.plays().filter(p=>!p.pe&&!p.anul),of=all.filter(p=>p.side==="o");
+ const R={qb:of.filter(p=>p.tipo==="pase"&&p.qb===n),rec:of.filter(p=>p.tipo==="pase"&&p.rec===n),run:of.filter(p=>p.tipo==="corrida"&&p.run===n),def:all.filter(p=>p.side==="d"&&(p.def===n||p.fe.includes(n)||p.dsv===n))};
+ const head=`<div class="pm-bar"><b class="pm-t">Mapa</b>`;
+ if(!S.show)return `<button class="pm-show" data-pp="show" data-v="1">Ver mapa</button>`;
+ if(!R.qb.length&&!R.rec.length&&!R.run.length&&!R.def.length)return `<div class="pm-card">${head}<button class="pm-hide" data-pp="show" data-v="">Ocultar mapa</button></div>${noMapMsg("Sin jugadas con ubicación todavía. El mapa se arma con los partidos cargados en el anotador nuevo.")}</div>`;
+ if(!S.role||!R[S.role].length){S.role=["qb","rec","run","def"].sort((a,b)=>R[b].length-R[a].length)[0];if(S.role==="def")S.view="rutas";}
+ const type=S.role==="run"?"corr":"pase",isD=S.role==="def";
+ return `<div class="pm-card">${head}<div class="seg pm-seg">${[["qb","QB"],["rec","Receptor"],["run","Corridas"],["def","Defensa"]].map(([k,l])=>`<button data-pp="role" data-v="${k}" class="${S.role===k?"on":""}${k==="def"&&S.role===k?" d":""}" ${R[k].length?"":"disabled"}>${l} · ${R[k].length}</button>`).join("")}</div><div class="seg pm-seg"><button data-pp="view" data-v="rutas" class="${S.view==="rutas"?"on":""}">${isD?"Flags":"Rutas"}</button><button data-pp="view" data-v="zonas" class="${S.view==="zonas"?"on":""}">Zonas</button></div><button class="pm-hide" data-pp="show" data-v="">Ocultar mapa</button></div>
+  <div class="pm-grid"><div>${isD?PM.defSVG(R.def,S.view==="zonas"?"zonas":"rutas",n):PM.mapSVG(R[S.role],type,S.view)}</div><div class="pm-side">${isD?defKPIs(R.def,n):PM.sideKPIs(R[S.role],type,S.role)}</div></div></div>`;}
+function renderPlayerMap(){const el=document.getElementById("ppMap");if(!el||!PMS.player.num)return;el.innerHTML=playerMapHTML(PMS.player.num);}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-lf]");if(b){PM.toggle(b.dataset.lf);try{renderGameExtra();}catch(_){}try{renderSeasonMap();}catch(_){}renderPlayerMap();return;}
+ const q=e.target.closest("#ppMap [data-pp]");if(q){if(q.disabled)return;const k=q.dataset.pp;if(k==="show")PMS.player.show=!!q.dataset.v;else{PMS.player[k]=q.dataset.v;if(k==="role"&&q.dataset.v==="def")PMS.player.view="rutas";}renderPlayerMap();}});
 
 wireGameExtra();wireSeasonMap();try{renderGameExtra();renderSeasonMap();}catch(e){}
 </script>
