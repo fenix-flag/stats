@@ -683,7 +683,7 @@
   .tvtop{grid-template-columns:1fr auto 1fr}
 
   .pm-lf{display:inline-flex;align-items:center;gap:0;background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;color:var(--ink);font:600 12px var(--font-body,inherit);cursor:pointer}
-  .pm-lf.off{opacity:.4;text-decoration:line-through}.pm-lf i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px}
+  .pm-lf.off{opacity:.4;text-decoration:line-through}.pm-lf .pm-ic{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;flex:none;box-sizing:border-box}.pm-lf .pm-ics{width:16px;height:16px;margin-right:5px;flex:none}
   #ppMap{margin-top:16px}#ppMap .pm-card{margin:0}
   .pm-seg button.on.d{background:var(--def,#B8B2F5);color:#15112B;border-color:var(--def,#B8B2F5)}
 </style>
@@ -2767,7 +2767,11 @@ var PM=(function(){
    out.push(p);});
   cache=out;cacheKey=key;return out;}
  const HID={};const hid=k=>!!HID[k];
- const lf=(k,col,txt)=>`<button type="button" class="pm-lf ${hid(k)?"off":""}" data-lf="${k}" aria-pressed="${!hid(k)}"><i style="background:${col}"></i>${txt}</button>`;
+ const TDY="#FACC15";
+ const BALL=(x,y,s)=>`<g transform="translate(${x},${y}) rotate(-35) scale(${s||1})"><ellipse rx="7.5" ry="4.6" fill="#8B4513" stroke="${TDY}" stroke-width="1.4"/><path d="M-3.2 0h6.4M-2 -1.3v2.6M0 -1.3v2.6M2 -1.3v2.6" stroke="#F4F2EE" stroke-width=".9" stroke-linecap="round"/></g>`;
+ const FLAG=(x,y)=>`<g transform="translate(${x},${y})"><line y1="0" y2="-9" stroke="#F4F2EE" stroke-width="1.2"/><path d="M0,-9 L7,-7 L0,-5Z" fill="#B8B2F5"/></g>`;
+ const IC={dot:c=>`<i class="pm-ic" style="background:${c}"></i>`,ring:c=>`<i class="pm-ic" style="background:none;border:2px solid ${c}"></i>`,ball:()=>`<svg class="pm-ics" viewBox="-10 -10 20 20" aria-hidden="true">${BALL(0,0,1.1)}</svg>`,flag:()=>`<svg class="pm-ics" viewBox="-3 -11 14 14" aria-hidden="true">${FLAG(0,0)}</svg>`};
+ const lf=(k,ic,txt)=>`<button type="button" class="pm-lf ${hid(k)?"off":""}" data-lf="${k}" aria-pressed="${!hid(k)}">${ic}${txt}</button>`;
  const rk=r=>r==="C"?"C":r==="X"?"X":"I";
  /* ---------- cancha relativa a la línea ---------- */
  const LOS=250,SC=10,P=(x,y)=>[x*SC,LOS-y*SC];
@@ -2795,18 +2799,18 @@ var PM=(function(){
      heat+=`<rect x="${x1}" y="0" width="${x2-x1}" height="${LOS}" fill="rgba(${tc},${.06+.25*c.length/max})"/><rect x="${x1+12}" y="${y1}" width="${x2-x1-24}" height="${y2-y1}" rx="4" fill="rgba(${tc},.85)"/><text x="${(x1+x2)/2}" y="${y1-8}" text-anchor="middle" class="pm-z">${avg.toFixed(1)} yd</text><text x="${(x1+x2)/2}" y="${y1-24}" text-anchor="middle" class="pm-zs">${c.length} corridas</text>`;});}}
   let out=base(heat);
   if(view==="rutas"){const col={C:"#4ADE80",I:"#F87171",D:"#F87171",F:"#F87171",X:"#60A5FA"};const op=loc.length>60?.45:.75;
-   loc.forEach(p=>{if(type==="pase"&&hid(rk(p.res)))return;if(hid("TD")&&!p.td)return;if(type==="pase"){const r=rel(p),[x,y]=P(r.x,r.y),c=col[p.res]||"#F4F2EE";h+=`<line x1="${qx}" y1="${qy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="1.5" stroke-opacity="${op}" ${p.res!=="C"?'stroke-dasharray="4 3"':""}/>`;
-     if(p.res==="C"&&p.fin&&r.fy-r.y>.5){const[fx,fy]=P(r.fx,r.fy);h+=`<line x1="${x}" y1="${y}" x2="${fx}" y2="${fy}" stroke="${c}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/>`;}
-     h+=p.td?`<circle cx="${x}" cy="${y}" r="5.5" fill="${c}" stroke="#F4F2EE" stroke-width="1.5"/>`:`<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;}
-    else{const r=relRun(p),[fx,fy]=P(r.fx,Math.min(26,r.fy));h+=`<line x1="${qx}" y1="${qy}" x2="${fx}" y2="${fy}" stroke="rgb(${tc})" stroke-width="1.8" stroke-opacity="${op}"/><circle cx="${fx}" cy="${fy}" r="${p.td?5.5:3.4}" fill="rgb(${tc})" ${p.td?'stroke="#F4F2EE" stroke-width="1.5"':""}/>`;}});
+   loc.forEach(p=>{if(type==="pase"&&hid(rk(p.res)))return;if(hid("TD")&&!p.td)return;if(type==="pase"){const r=rel(p),[x,y]=P(r.x,r.y),c=p.td?TDY:(col[p.res]||"#F4F2EE");h+=`<line x1="${qx}" y1="${qy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="${p.td?2.2:1.5}" stroke-opacity="${p.td?1:op}" ${p.res!=="C"?'stroke-dasharray="4 3"':""}/>`;
+     if(p.res==="C"&&p.fin&&r.fy-r.y>.5){const[fx,fy]=P(r.fx,Math.min(24.3,r.fy));h+=`<line x1="${x}" y1="${y}" x2="${fx}" y2="${fy}" stroke="${c}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/>`;}
+     if(p.td){const[bx,by]=p.fin&&r.fy-r.y>.5?P(r.fx,Math.min(24.3,r.fy)):P(r.x,Math.min(24.3,r.y));h+=BALL(bx,by);}else h+=`<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;}
+    else{const r=relRun(p),[fx,fy]=P(r.fx,Math.min(26,r.fy));h+=`<line x1="${qx}" y1="${qy}" x2="${fx}" y2="${fy}" stroke="${p.td?TDY:`rgb(${tc})`}" stroke-width="${p.td?2.2:1.8}" stroke-opacity="${p.td?1:op}"/>`+(p.td?BALL(fx,Math.max(fy,7)):`<circle cx="${fx}" cy="${fy}" r="3.4" fill="rgb(${tc})"/>`);}});
    h+=`<circle cx="${qx}" cy="${qy}" r="8" fill="rgb(${tc})"/>`;out+=h;}
   const miss=d.length-loc.length;
-  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${view==="zonas"?(type==="pase"?`<span>completos / intentos en cada zona</span>`:`<span>yardas promedio por carril</span>`):type==="pase"?lf("C","#4ADE80","Completo")+lf("I","#F87171","Incompleto / drop")+lf("X","#60A5FA","Intercepción")+lf("TD","#F4F2EE","Solo TD"):`<span><i style="background:rgb(${tc})"></i>Corrida (hasta el flag)</span>`+lf("TD","#F4F2EE","Solo TD")}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
+  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${view==="zonas"?(type==="pase"?`<span>completos / intentos en cada zona</span>`:`<span>yardas promedio por carril</span>`):type==="pase"?lf("C",IC.dot("#4ADE80"),"Completo")+lf("I",IC.dot("#F87171"),"Incompleto / drop")+lf("X",IC.dot("#60A5FA"),"Intercepción")+lf("TD",IC.ball(),"Solo TD"):`<span class="pm-lf" style="cursor:default">${IC.dot(`rgb(${tc})`)}Corrida (hasta el flag)</span>`+lf("TD",IC.ball(),"Solo TD")}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
  const box=(l,v,s)=>`<div class="pm-kp"><span class="pm-k">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
  function sideKPIs(d,type,role){
   if(type==="pase"){const c=d.filter(p=>p.res==="C"),yd=c.reduce((a,p)=>a+(p.yd||0),0);const z={};c.filter(p=>p.pt&&p.spot!=null).forEach(p=>{const r=rel(p);const k=LN[lane(r.x)]+", "+DN[depth(r.y)];z[k]=(z[k]||0)+1;});const top=Object.entries(z).sort((a,b)=>b[1]-a[1])[0];
    const deep=d.filter(p=>p.pt&&p.spot!=null&&rel(p).y>=15),dc=deep.filter(p=>p.res==="C").length;const yacL=c.filter(p=>p.pt&&p.fin&&p.spot!=null);const yac=yacL.reduce((a,p)=>a+Math.max(0,p.fin[1]-p.pt[1]),0);
-   return box(role==="rec"?"Recepciones":role==="rival"?"Nos completaron":"Completos",`${c.length}/${d.length}`,`${d.length?Math.round(c.length/d.length*100):0}% · ${Math.round(yd)} yd`)+box("Zona favorita",top?top[0]:"—",top?top[1]+" completos":"")+box("Profundos (15+ yd)",`${dc}/${deep.length}`,deep.length?Math.round(dc/deep.length*100)+"%":"")+(role==="rec"?box("Drops",d.filter(p=>p.res==="D").length):box(role==="rival"?"Intercepciones nuestras":"Intercepciones",d.filter(p=>p.res==="X").length))+box("Yardas después de recibir",yacL.length?(yac/yacL.length).toFixed(1)+" yd":"—","promedio");}
+   return box(role==="rec"?"Recepciones":role==="rival"?"Nos completaron":"Completos",`${c.length}/${d.length}`,`${d.length?Math.round(c.length/d.length*100):0}% · ${Math.round(yd)} yd`)+box("Zona favorita",top?top[0]:"—",top?top[1]+" completos":"")+box("Profundos (15+ yd)",`${dc}/${deep.length}`,deep.length?Math.round(dc/deep.length*100)+"%":"")+(role==="rec"?box("Drops",d.filter(p=>p.res==="D").length):box(role==="rival"?"Intercepciones nuestras":"Intercepciones",d.filter(p=>p.res==="X").length))+(role==="qb"?box("Promedio por pase",c.length?(yd/c.length).toFixed(1)+" yd":"—",d.length?`por completo · ${(yd/d.length).toFixed(1)} yd por intento`:"por completo"):role==="rec"?box("Promedio por recepción",c.length?(yd/c.length).toFixed(1)+" yd":"—","yardas por pase recibido")+box("Yardas después de recibir",yacL.length?(yac/yacL.length).toFixed(1)+" yd":"—","promedio"):box("Yardas después de recibir",yacL.length?(yac/yacL.length).toFixed(1)+" yd":"—","promedio"));}
   const yd=d.reduce((a,p)=>a+(p.yd||0),0);const loc=d.filter(p=>p.fin);const by=[0,1,2].map(l=>loc.filter(p=>lane(p.fin[0])===l).length);const tl=by.indexOf(Math.max(...by));
   return box("Corridas",d.length,`${Math.round(yd)} yd`)+box("Promedio",d.length?(yd/d.length).toFixed(1)+" yd":"—","por corrida")+box("Carril favorito",loc.length?LN[tl]:"—",loc.length?by[tl]+" corridas":"")+box("Mejor corrida",d.length?Math.round(Math.max(...d.map(p=>p.yd||0)))+" yd":"—");}
  function anotSVG(tds){const W=600,H=230,X=yd=>(yd+10)/70*W;let h=`<rect width="${W}" height="${H}" fill="#1B3A22"/><rect x="${X(50)}" width="${X(60)-X(50)}" height="${H}" fill="rgba(249,115,22,.22)"/><rect x="0" width="${X(0)}" height="${H}" fill="rgba(249,115,22,.08)"/>`;
@@ -2815,14 +2819,18 @@ var PM=(function(){
   const col={pase:"#4ADE80",corr:"#FDBA74",pick:"#60A5FA"};
   tds.forEach((t,i)=>{const y=12+((i*37)%(H-34));h+=`<line x1="${X(t.spot)}" x2="${X(52)}" y1="${y}" y2="${y}" stroke="${col[t.type]}" stroke-width="2" stroke-opacity=".75"/><circle cx="${X(t.spot)}" cy="${y}" r="4" fill="${col[t.type]}"/>`;});
   return `<svg class="pm-field" viewBox="0 0 ${W} ${H}">${h}</svg><div class="pm-leg"><span><i style="background:#4ADE80"></i>Pase</span><span><i style="background:#FDBA74"></i>Corrida</span><span><i style="background:#60A5FA"></i>Pick 6</span><span>● desde dónde arrancó la jugada</span></div>`;}
- function defSVG(d,view,n){if(view==="zonas")return mapSVG(d.filter(p=>p.tipo==="pase"),"pase","zonas","184,178,245");
-  let h=base("");h+=`<circle cx="125" cy="${LOS+30}" r="8" fill="#B8B2F5"/>`;const me=v=>!n||v===n;
+ function defSVG(d,view,n){if(view==="zonas")return mapSVG(d.filter(p=>p.tipo==="pase"&&!p.pe),"pase","zonas","184,178,245");
+  let h=base(""),miss=0;h+=`<circle cx="125" cy="${LOS+30}" r="8" fill="#B8B2F5"/>`;const me=v=>!n||v===n;
   d.forEach(p=>{if(p.spot==null)return;const f=p.fin||p.pt;
    if(p.pt&&p.dsv&&me(p.dsv)&&!hid("F")){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="#F87171" stroke-width="2"/>`;}
-   if(f&&p.flag&&!p.td&&me(p.flag)&&!hid("FL")){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<g transform="translate(${fx},${fy})"><line y1="0" y2="-9" stroke="#F4F2EE" stroke-width="1.2"/><path d="M0,-9 L7,-7 L0,-5Z" fill="#B8B2F5"/></g>`;}
-   if(p.pt&&((p.res==="F"&&me(p.defl)&&!hid("F"))||(p.res==="X"&&me(p.intc)&&!hid("X")))){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${p.res==="X"?"#60A5FA":"#F87171"}" stroke="#0E0F12" stroke-width="1"/>`;}
+   if(f&&p.flag&&!p.td&&me(p.flag)&&!hid("FL")){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=FLAG(fx,fy);}
+   if(p.pt&&p.res==="F"&&me(p.defl)&&!hid("F")){const[x,y]=P(p.pt[0],Math.min(26,p.pt[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#F87171" stroke="#0E0F12" stroke-width="1"/>`;}
+   if(p.res==="X"&&me(p.intc)){const ip=p.pt||p.ret;const pk=!!(p.pick6||p.pick2);
+    if(!ip)miss++;
+    else if(pk&&!hid("PK")){const[x,y]=P(ip[0],Math.min(26,ip[1]-p.spot));const e=p.ret&&p.ret!==ip?P(p.ret[0],Math.max(-7,Math.min(26,p.ret[1]-p.spot))):[x,320];h+=`<line x1="${x}" y1="${y}" x2="${e[0]}" y2="${e[1]}" stroke="${TDY}" stroke-width="2.2"/><circle cx="${x}" cy="${y}" r="3.5" fill="#60A5FA"/>`+BALL(e[0],Math.min(312,e[1]));}
+    else if(!pk&&!hid("X")){const[x,y]=P(ip[0],Math.min(26,ip[1]-p.spot));h+=`<circle cx="${x}" cy="${y}" r="5" fill="#60A5FA" stroke="#0E0F12" stroke-width="1"/>`;}}
    if(!n&&p.td&&!p.pe&&f&&!hid("TC")){const[fx,fy]=P(f[0],Math.min(26,f[1]-p.spot));h+=`<circle cx="${fx}" cy="${fy}" r="5" fill="none" stroke="#F87171" stroke-width="2"/>`;}});
-  return `<svg class="pm-field" viewBox="0 0 250 320">${h}</svg><div class="pm-leg">${lf("FL","#B8B2F5","⚑ Flag sacado")+lf("F","#F87171","Pase desviado")+lf("X","#60A5FA","Intercepción")+(n?"":lf("TC","transparent;border:2px solid #F87171","◯ TD en contra"))}</div>`;}
+  return `<svg class="pm-field" viewBox="0 0 250 320">${h}</svg><div class="pm-leg">${lf("FL",IC.flag(),"Flag sacado")+lf("F",IC.dot("#F87171"),"Pase desviado")+lf("X",IC.dot("#60A5FA"),"Intercepción")+lf("PK",IC.ball(),"Pick 6 / Pick 2")+(n?"":lf("TC",IC.ring("#F87171"),"TD en contra"))}${miss?`<span>${miss} intercepción${miss===1?"":"es"} sin ubicación</span>`:""}</div>`;}
  function toggle(k){HID[k]=!HID[k];}
  return {plays,mapSVG,sideKPIs,anotSVG,defSVG,box,rel,LN,DN,lane,depth,toggle};
 })();
@@ -2895,7 +2903,7 @@ function gamePaneHTML(part){const S=PMS.game,has=gamePlays(part).length>0,riv=ri
   return `<div class="pm-card"><div class="destg">${cards}</div></div>`;}
  if(!has)return noMapMsg(NO_DATA);
  if(S.type==="def"&&S.team!=="d")S.type="pase";
- const all=gamePlays(part).filter(p=>p.side===S.team&&!p.pe&&(S.type==="def"||p.tipo===(S.type==="pase"?"pase":"corrida")));
+ const all=gamePlays(part).filter(p=>p.side===S.team&&(!p.pe||(S.type==="def"&&p.pick2))&&(S.type==="def"||p.tipo===(S.type==="pase"?"pase":"corrida")));
  const keyQ=S.team==="o"?(S.type==="pase"?[["qb","Pasa"],["rec","Recibe"]]:[["run","Corre"]]):[["def","Defendió"]];
  const opts=keyQ.map(([k,l])=>{const ids=[...new Set(all.map(p=>p[k]).filter(Boolean))].sort((a,b)=>a-b);return ids.length?`<optgroup label="${l}">${ids.map(n=>`<option value="${k}:${n}" ${S.pl===k+":"+n?"selected":""}>${pmName(n)}</option>`).join("")}</optgroup>`:"";}).join("");
  let d=all;if(S.pl){const[k,v]=S.pl.split(":");d=d.filter(p=>p[k]===v||(S.type==="def"&&(p.fe.includes(v)||p.dsv===v)));}
@@ -2934,7 +2942,7 @@ function seasonMapHTML(){const S=PMS.season,all=PM.plays().filter(p=>!p.anul),si
   tds=tds.concat(all.filter(p=>p.side==="d"&&p.pick6&&p.pt).map(p=>({type:"pick",spot:Math.max(0,50-(p.pt[1])),pl:p.pick6})));
   if(S.pl)tds=tds.filter(t=>t.pl===S.pl);const ds=tds.map(t=>50-t.spot);const pe=all.filter(p=>p.side==="o"&&p.pe);
   const B=PM.box;return `<div class="pm-card">${head("Desde dónde anotamos",null)}<div class="pm-wide"><div>${PM.anotSVG(tds)}</div><div class="pm-side">${B("Touchdowns",tds.length,`pase ${tds.filter(t=>t.type==="pase").length} · corrida ${tds.filter(t=>t.type==="corr").length} · pick ${tds.filter(t=>t.type==="pick").length}`)+B("Distancia promedio",ds.length?(ds.reduce((a,b)=>a+b,0)/ds.length).toFixed(1)+" yd":"—","desde la línea de scrimmage")+B("TD más largo",ds.length?Math.max(...ds)+" yd":"—")+B("Desde 10 yd o menos",ds.filter(x=>x<=10).length)+(S.pl?"":B("Puntos extra x1 · x2",`${pe.filter(p=>p.spot>=44&&p.td).length}/${pe.filter(p=>p.spot>=44).length} · ${pe.filter(p=>p.spot<44&&p.td).length}/${pe.filter(p=>p.spot<44).length}`,"convertidos / intentados"))}</div></div></div>`;}
- let d=all.filter(p=>p.side==="d"&&!p.pe);if(S.pl)d=d.filter(p=>p.def===S.pl||p.fe.includes(S.pl));
+ let d=all.filter(p=>p.side==="d"&&(!p.pe||p.pick2));if(S.pl)d=d.filter(p=>p.def===S.pl||p.fe.includes(S.pl));
  const pas=d.filter(p=>p.tipo==="pase"),c=pas.filter(p=>p.res==="C");const z={};pas.filter(p=>p.pt&&p.spot!=null).forEach(p=>{const r=PM.rel(p);const k=PM.LN[PM.lane(r.x)]+", "+PM.DN[PM.depth(r.y)];z[k]=z[k]||[0,0];z[k][1]++;if(p.res==="C")z[k][0]++;});
  const weak=Object.entries(z).filter(([k,v])=>v[1]>=5).sort((a,b)=>b[1][0]/b[1][1]-a[1][0]/a[1][1])[0];
  const fl=d.filter(p=>p.flag&&(!S.pl||p.flag===S.pl)).length,er=d.reduce((a,p)=>a+p.fe.filter(n=>!S.pl||n===S.pl).length,0);const B=PM.box;
@@ -2949,7 +2957,7 @@ function wireSeasonMap(){const el=$("#seasonMap");if(!el)return;el.addEventListe
  $("#segSeason").addEventListener("click",()=>{PMS.season.pl="";PMS.season.view=seasonSide==="def"?"rutas":"zonas";setTimeout(renderSeasonMap,0);});}
 
 /* ---------- Ficha ---------- */
-function playerMapHTML(n){if(!PM)return "";const S=PMS.player;n=String(n);S.num=n;const all=PM.plays().filter(p=>!p.pe&&!p.anul),of=all.filter(p=>p.side==="o");
+function playerMapHTML(n){if(!PM)return "";const S=PMS.player;n=String(n);S.num=n;const all=PM.plays().filter(p=>(!p.pe||(p.side==="d"&&p.pick2))&&!p.anul),of=all.filter(p=>p.side==="o");
  const R={qb:of.filter(p=>p.tipo==="pase"&&p.qb===n),rec:of.filter(p=>p.tipo==="pase"&&p.rec===n),run:of.filter(p=>p.tipo==="corrida"&&p.run===n),def:all.filter(p=>p.side==="d"&&(p.def===n||p.fe.includes(n)||p.dsv===n))};
  const head=`<div class="pm-bar"><b class="pm-t">Mapa</b>`;
  if(!S.show)return `<button class="pm-show" data-pp="show" data-v="1">Ver mapa</button>`;
