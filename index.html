@@ -2745,7 +2745,7 @@ var PM=(function(){
   OFF.rows.forEach(r=>{const tipo=cv(OFF,r,"tipo jugada");if(!tipo)return;
    const pe=cv(OFF,r,"down")==="PE";const ptx=cv(OFF,r,"pt ext");
    const p={side:"o",part:cv(OFF,r,"Partido"),jug:+cv(OFF,r,"jugada")||0,drive:+cv(OFF,r,"drive")||0,tipo,res:cv(OFF,r,"resultado"),spot:num(cv(OFF,r,"spot")),down:cv(OFF,r,"down"),tiempo:cv(OFF,r,"tiempo"),
-    pt:pt(cv(OFF,r,"recep x,y")),fin:pt(cv(OFF,r,"fin x,y")),pe,anul:!!cv(OFF,r,"jugada anulada")};
+    pt:pt(cv(OFF,r,"recep x,y")),fin:pt(cv(OFF,r,"fin x,y")),ini:pt(cv(OFF,r,"inicio x,y")),pe,anul:!!cv(OFF,r,"jugada anulada")};
    p.qb=cv(OFF,r,"pasador")||cv(OFF,r,"pas inc")||cv(OFF,r,"pasador pe fallado")||cv(OFF,r,"asist p ext")||(tipo==="sack"?cv(OFF,r,"sack"):"");
    p.rec=cv(OFF,r,"receptor")||cv(OFF,r,"drop")||(tipo==="pase"?(cv(OFF,r,"jugador pe fallado")||cv(OFF,r,"jugador p ext")):"");
    p.run=cv(OFF,r,"corredor")||(tipo==="corrida"?(cv(OFF,r,"jugador p ext")||cv(OFF,r,"jugador pe fallado")):"");
@@ -2759,7 +2759,7 @@ var PM=(function(){
   DEF.rows.forEach(r=>{const tipo=cv(DEF,r,"tipo jugada");if(!tipo)return;
    const pe=cv(DEF,r,"down")==="PE"||cv(DEF,r,"situacion")==="PE";
    const p={side:"d",part:cv(DEF,r,"Partido"),jug:+cv(DEF,r,"jugada")||0,drive:+cv(DEF,r,"drive")||0,tipo,res:cv(DEF,r,"resultado"),spot:num(cv(DEF,r,"spot")),down:cv(DEF,r,"down"),tiempo:cv(DEF,r,"tiempo"),
-    pt:pt(cv(DEF,r,"recep x,y")),fin:pt(cv(DEF,r,"fin x,y")),ret:pt(cv(DEF,r,"devolucion x,y")),pe,anul:!!cv(DEF,r,"jugada anulada")};
+    pt:pt(cv(DEF,r,"recep x,y")),fin:pt(cv(DEF,r,"fin x,y")),ini:pt(cv(DEF,r,"inicio x,y")),ret:pt(cv(DEF,r,"devolucion x,y")),pe,anul:!!cv(DEF,r,"jugada anulada")};
    p.flag=cv(DEF,r,"flag capturado");p.defl=cv(DEF,r,"pase desviado");p.intc=cv(DEF,r,"intercepcion");p.sack=cv(DEF,r,"sacks");
    p.def=p.flag||p.defl||p.intc||p.sack;p.fe=fe[p.part+"#"+p.jug]||[];p.dsv=dsv[p.part+"#"+p.jug]||"";
    p.pick6=cv(DEF,r,"pick 6");p.pick2=cv(DEF,r,"pick 2");p.safety=cv(DEF,r,"safety");
@@ -2778,7 +2778,7 @@ var PM=(function(){
  const lane=x=>x<25/3?0:x<50/3?1:2,depth=y=>y<0?0:y<5?1:y<15?2:3;
  const LN=["izquierda","centro","derecha"],DN=["detrás","corto","medio","profundo"];
  const rel=p=>({x:p.pt[0],y:p.pt[1]-p.spot,fx:(p.fin||p.pt)[0],fy:(p.fin||p.pt)[1]-p.spot});
- const relRun=p=>({fx:p.fin[0],fy:p.fin[1]-p.spot});
+ const relRun=p=>({fx:p.fin[0],fy:p.fin[1]-p.spot});const runX=p=>(p.ini||p.fin)[0];
  function base(heat){let h=`<rect width="250" height="320" fill="#1B3A22"/>`;
   for(let yd=-5;yd<=25;yd+=5){const[,y]=P(0,yd);h+=`<line x1="0" x2="250" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.1)"/>`;}
   [25/3,50/3].forEach(x=>h+=`<line x1="${x*SC}" x2="${x*SC}" y1="0" y2="320" stroke="rgba(255,255,255,.08)" stroke-dasharray="3 4"/>`);
@@ -2794,7 +2794,7 @@ var PM=(function(){
    if(type==="pase"){const cells={};loc.forEach(p=>{const r=rel(p);const k=lane(r.x)+"-"+depth(r.y);(cells[k]=cells[k]||[]).push(p);});const max=Math.max(1,...Object.values(cells).map(c=>c.length));const LX=[0,25/3,50/3,25],DY=[-7,0,5,15,25];
     Object.entries(cells).forEach(([k,c])=>{const[l,dp]=k.split("-").map(Number);const[x1,y1]=P(LX[l],DY[dp+1]),[x2,y2]=P(LX[l+1],DY[dp]);const ok=c.filter(p=>p.res==="C").length;
      heat+=`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" fill="rgba(${tc},${.12+.55*c.length/max})"/><text x="${(x1+x2)/2}" y="${(y1+y2)/2-2}" text-anchor="middle" class="pm-z">${ok}/${c.length}</text><text x="${(x1+x2)/2}" y="${(y1+y2)/2+12}" text-anchor="middle" class="pm-zs">${Math.round(ok/c.length*100)}%</text>`;});}
-   else{const LX=[0,25/3,50/3,25];const by=[0,1,2].map(l=>loc.filter(p=>lane(p.fin[0])===l));const max=Math.max(1,...by.map(c=>c.length));
+   else{const LX=[0,25/3,50/3,25];const by=[0,1,2].map(l=>loc.filter(p=>lane(runX(p))===l));const max=Math.max(1,...by.map(c=>c.length));
     by.forEach((c,l)=>{if(!c.length)return;const avg=c.reduce((a,p)=>a+relRun(p).fy,0)/c.length;const[x1,y1]=P(LX[l],Math.max(avg,0.5)),[x2,y2]=P(LX[l+1],0);
      heat+=`<rect x="${x1}" y="0" width="${x2-x1}" height="${LOS}" fill="rgba(${tc},${.06+.25*c.length/max})"/><rect x="${x1+12}" y="${y1}" width="${x2-x1-24}" height="${y2-y1}" rx="4" fill="rgba(${tc},.85)"/><text x="${(x1+x2)/2}" y="${y1-8}" text-anchor="middle" class="pm-z">${avg.toFixed(1)} yd</text><text x="${(x1+x2)/2}" y="${y1-24}" text-anchor="middle" class="pm-zs">${c.length} corridas</text>`;});}}
   let out=base(heat);
@@ -2802,16 +2802,16 @@ var PM=(function(){
    loc.forEach(p=>{if(type==="pase"&&hid(rk(p.res)))return;if(hid("TD")&&!p.td)return;if(type==="pase"){const r=rel(p),[x,y]=P(r.x,r.y),c=p.td?TDY:(col[p.res]||"#F4F2EE");h+=`<line x1="${qx}" y1="${qy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="${p.td?2.2:1.5}" stroke-opacity="${p.td?1:op}" ${p.res!=="C"?'stroke-dasharray="4 3"':""}/>`;
      if(p.res==="C"&&p.fin&&r.fy-r.y>.5){const[fx,fy]=P(r.fx,Math.min(24.3,r.fy));h+=`<line x1="${x}" y1="${y}" x2="${fx}" y2="${fy}" stroke="${c}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/>`;}
      if(p.td){const[bx,by]=p.fin&&r.fy-r.y>.5?P(r.fx,Math.min(24.3,r.fy)):P(r.x,Math.min(24.3,r.y));h+=BALL(bx,by);}else h+=`<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;}
-    else{const r=relRun(p),[fx,fy]=P(r.fx,Math.min(26,r.fy));h+=`<line x1="${qx}" y1="${qy}" x2="${fx}" y2="${fy}" stroke="${p.td?TDY:`rgb(${tc})`}" stroke-width="${p.td?2.2:1.8}" stroke-opacity="${p.td?1:op}"/>`+(p.td?BALL(fx,Math.max(fy,7)):`<circle cx="${fx}" cy="${fy}" r="3.4" fill="rgb(${tc})"/>`);}});
+    else{const r=relRun(p),[fx,fy]=P(r.fx,Math.min(26,r.fy));const[sx,sy]=p.ini?P(p.ini[0],Math.max(-6,Math.min(26,p.ini[1]-p.spot))):[qx,qy];if(p.ini)h+=`<line x1="${qx}" y1="${qy}" x2="${sx}" y2="${sy}" stroke="rgb(${tc})" stroke-width="1" stroke-dasharray="2 4" stroke-opacity=".5"/><circle cx="${sx}" cy="${sy}" r="2.6" fill="none" stroke="rgb(${tc})" stroke-width="1.2"/>`;h+=`<line x1="${sx}" y1="${sy}" x2="${fx}" y2="${fy}" stroke="${p.td?TDY:`rgb(${tc})`}" stroke-width="${p.td?2.2:1.8}" stroke-opacity="${p.td?1:op}"/>`+(p.td?BALL(fx,Math.max(fy,7)):`<circle cx="${fx}" cy="${fy}" r="3.4" fill="rgb(${tc})"/>`);}});
    h+=`<circle cx="${qx}" cy="${qy}" r="8" fill="rgb(${tc})"/>`;out+=h;}
   const miss=d.length-loc.length;
-  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${view==="zonas"?(type==="pase"?`<span>completos / intentos en cada zona</span>`:`<span>yardas promedio por carril</span>`):type==="pase"?lf("C",IC.dot("#4ADE80"),"Completo")+lf("I",IC.dot("#F87171"),"Incompleto / drop")+lf("X",IC.dot("#60A5FA"),"Intercepción")+lf("TD",IC.ball(),"Solo TD"):`<span class="pm-lf" style="cursor:default">${IC.dot(`rgb(${tc})`)}Corrida (hasta el flag)</span>`+lf("TD",IC.ball(),"Solo TD")}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
+  return `<svg class="pm-field" viewBox="0 0 250 320">${out}</svg><div class="pm-leg">${view==="zonas"?(type==="pase"?`<span>completos / intentos en cada zona</span>`:`<span>yardas promedio por carril (el carril es de dónde salió la corrida)</span>`):type==="pase"?lf("C",IC.dot("#4ADE80"),"Completo")+lf("I",IC.dot("#F87171"),"Incompleto / drop")+lf("X",IC.dot("#60A5FA"),"Intercepción")+lf("TD",IC.ball(),"Solo TD"):`<span class="pm-lf" style="cursor:default">${IC.dot(`rgb(${tc})`)}Corrida: ○ de dónde salió → hasta el flag</span>`+lf("TD",IC.ball(),"Solo TD")}${miss?`<span>${miss} sin ubicación (no se dibujan)</span>`:""}</div>`;}
  const box=(l,v,s)=>`<div class="pm-kp"><span class="pm-k">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
  function sideKPIs(d,type,role){
   if(type==="pase"){const c=d.filter(p=>p.res==="C"),yd=c.reduce((a,p)=>a+(p.yd||0),0);const z={};c.filter(p=>p.pt&&p.spot!=null).forEach(p=>{const r=rel(p);const k=LN[lane(r.x)]+", "+DN[depth(r.y)];z[k]=(z[k]||0)+1;});const top=Object.entries(z).sort((a,b)=>b[1]-a[1])[0];
    const deep=d.filter(p=>p.pt&&p.spot!=null&&rel(p).y>=15),dc=deep.filter(p=>p.res==="C").length;const yacL=c.filter(p=>p.pt&&p.fin&&p.spot!=null);const yac=yacL.reduce((a,p)=>a+Math.max(0,p.fin[1]-p.pt[1]),0);
    return box(role==="rec"?"Recepciones":role==="rival"?"Nos completaron":"Completos",`${c.length}/${d.length}`,`${d.length?Math.round(c.length/d.length*100):0}% · ${Math.round(yd)} yd`)+box("Zona favorita",top?top[0]:"—",top?top[1]+" completos":"")+box("Profundos (15+ yd)",`${dc}/${deep.length}`,deep.length?Math.round(dc/deep.length*100)+"%":"")+(role==="rec"?box("Drops",d.filter(p=>p.res==="D").length):box(role==="rival"?"Intercepciones nuestras":"Intercepciones",d.filter(p=>p.res==="X").length))+(role==="qb"?box("Promedio por pase",c.length?(yd/c.length).toFixed(1)+" yd":"—",d.length?`por completo · ${(yd/d.length).toFixed(1)} yd por intento`:"por completo"):role==="rec"?box("Promedio por recepción",c.length?(yd/c.length).toFixed(1)+" yd":"—","yardas por pase recibido")+box("Yardas después de recibir",yacL.length?(yac/yacL.length).toFixed(1)+" yd":"—","promedio"):box("Yardas después de recibir",yacL.length?(yac/yacL.length).toFixed(1)+" yd":"—","promedio"));}
-  const yd=d.reduce((a,p)=>a+(p.yd||0),0);const loc=d.filter(p=>p.fin);const by=[0,1,2].map(l=>loc.filter(p=>lane(p.fin[0])===l).length);const tl=by.indexOf(Math.max(...by));
+  const yd=d.reduce((a,p)=>a+(p.yd||0),0);const loc=d.filter(p=>p.fin);const by=[0,1,2].map(l=>loc.filter(p=>lane((p.ini||p.fin)[0])===l).length);const tl=by.indexOf(Math.max(...by));
   return box("Corridas",d.length,`${Math.round(yd)} yd`)+box("Promedio",d.length?(yd/d.length).toFixed(1)+" yd":"—","por corrida")+box("Carril favorito",loc.length?LN[tl]:"—",loc.length?by[tl]+" corridas":"")+box("Mejor corrida",d.length?Math.round(Math.max(...d.map(p=>p.yd||0)))+" yd":"—");}
  function anotSVG(tds){const W=600,H=230,X=yd=>(yd+10)/70*W;let h=`<rect width="${W}" height="${H}" fill="#1B3A22"/><rect x="${X(50)}" width="${X(60)-X(50)}" height="${H}" fill="rgba(249,115,22,.22)"/><rect x="0" width="${X(0)}" height="${H}" fill="rgba(249,115,22,.08)"/>`;
   for(let y=5;y<50;y+=5)h+=`<line x1="${X(y)}" x2="${X(y)}" y1="0" y2="${H}" stroke="rgba(255,255,255,${y===25?.5:.12})"/><text class="pm-l" x="${X(y)}" y="${H-5}" text-anchor="middle">${y<=25?y:50-y}</text>`;
