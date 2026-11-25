@@ -607,7 +607,7 @@
   .tlg.ph{display:flex;align-items:center;justify-content:center;font:800 13px var(--font-display);background:var(--accent);color:#1A0B02}.tlg.ph.r{background:var(--def);color:#15112B}
   .tn{font:800 17px var(--font-display);text-transform:uppercase;letter-spacing:.04em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tteam.r .tn{text-align:right}
   .tsc{min-width:52px;text-align:center;font:800 34px/1.25 var(--font-display);background:var(--bg);border-radius:6px;padding:0 8px}.tteam.f .tsc{color:var(--accent)}.tteam.r .tsc{color:var(--def)}
-  .tcen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;background:#22140A;border-left:1px solid var(--line);border-right:1px solid var(--line);min-width:150px;text-align:center}
+  .tcen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;background:none;border-left:1px solid var(--line);border-right:1px solid var(--line);min-width:150px;text-align:center}
   .tcen .fin{font:700 11px var(--font-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.tcen b{font:800 22px var(--font-display);text-transform:uppercase;letter-spacing:.04em}.tcen.w b{color:#4ADE80}.tcen.l b{color:#F87171}.tcen.t b{color:var(--ink)}.tcen span:last-child{font-size:12px;color:var(--muted)}
   .tvst{padding:12px 18px 10px}.tvh{text-align:center;font:800 15px var(--font-display);letter-spacing:.12em;text-transform:uppercase;padding:4px 0 10px}
   .tvr{display:grid;grid-template-columns:100px 1fr 100px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}.tvr:nth-child(even){background:rgba(255,255,255,.025)}
@@ -682,7 +682,7 @@
   .tvr b{text-align:center}
   .tvtop{grid-template-columns:1fr auto 1fr}
 
-  .pm-plsel{background:var(--bg);border:1px solid var(--line-2);border-radius:999px;color:var(--ink);padding:6px 12px;font:600 13px var(--font-body,inherit);max-width:220px}.gkpis{margin:10px 0 12px}.gstats{padding:6px 14px 10px}.gstats .tvh{display:flex;justify-content:space-between;align-items:center}.gstats .tvh .f{color:var(--accent)}.gstats .tvh .r{color:var(--def)}.pm-lf{display:inline-flex;align-items:center;gap:0;background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;color:var(--ink);font:600 12px var(--font-body,inherit);cursor:pointer}
+  .pm-plsel{background:var(--bg);border:1px solid var(--line-2);border-radius:999px;color:var(--ink);padding:6px 12px;font:600 13px var(--font-body,inherit);max-width:220px}.gkpis{margin:10px 0 0}.gkpis+.gkpis{margin:8px 0 12px}.gstats{padding:6px 14px 10px}.gstats .tvh{display:flex;justify-content:space-between;align-items:center}.gstats .tvh .f{color:var(--accent)}.gstats .tvh .r{color:var(--def)}.pm-lf{display:inline-flex;align-items:center;gap:0;background:none;border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;color:var(--ink);font:600 12px var(--font-body,inherit);cursor:pointer}
   .pm-lf.on{border-color:var(--accent);background:rgba(249,115,22,.16);box-shadow:inset 0 0 0 1px var(--accent)}.pm-lfx{color:var(--muted)}.pm-lfh{font-size:11.5px;color:var(--muted);align-self:center}.pm-note{color:var(--muted);font-size:12.5px;line-height:1.5;margin:8px 0 0}.pm-note b{color:var(--ink)}.pm-lf .pm-ic{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;flex:none;box-sizing:border-box}.pm-lf .pm-ics{width:16px;height:16px;margin-right:5px;flex:none}
   #ppMap{margin-top:16px}#ppMap .pm-card{margin:0}
   .pm-seg button.on.d{background:var(--def,#B8B2F5);color:#15112B;border-color:var(--def,#B8B2F5)}
@@ -2742,8 +2742,9 @@ var PM=(function(){
   const key=OFF.rows.length+"|"+DEF.rows.length+"|"+(OFF.rows[0]||[]).length+"|"+(DEF.rows[0]||[]).length;
   if(cache&&cacheKey===key)return cache;
   const out=[];
-  OFF.rows.forEach(r=>{const tipo=cv(OFF,r,"tipo jugada");if(!tipo)return;
-   const pe=cv(OFF,r,"down")==="PE";const ptx=cv(OFF,r,"pt ext");
+  OFF.rows.forEach(r=>{let tipo=cv(OFF,r,"tipo jugada"),legacy=false;const ptx=cv(OFF,r,"pt ext");
+   if(!tipo){if(ptx===""&&!cv(OFF,r,"jugador p ext")&&!cv(OFF,r,"jugador pe fallado"))return;legacy=true;tipo=(cv(OFF,r,"asist p ext")||cv(OFF,r,"pasador pe fallado"))?"pase":"corrida";}
+   const pe=cv(OFF,r,"down")==="PE"||legacy;
    const p={side:"o",part:cv(OFF,r,"Partido"),jug:+cv(OFF,r,"jugada")||0,drive:+cv(OFF,r,"drive")||0,tipo,res:cv(OFF,r,"resultado"),spot:num(cv(OFF,r,"spot")),down:cv(OFF,r,"down"),tiempo:cv(OFF,r,"tiempo"),
     pt:pt(cv(OFF,r,"recep x,y")),fin:pt(cv(OFF,r,"fin x,y")),ini:pt(cv(OFF,r,"inicio x,y")),pe,anul:!!cv(OFF,r,"jugada anulada")};
    p.qb=cv(OFF,r,"pasador")||cv(OFF,r,"pas inc")||cv(OFF,r,"pasador pe fallado")||cv(OFF,r,"asist p ext")||(tipo==="sack"?cv(OFF,r,"sack"):"");
@@ -2751,6 +2752,7 @@ var PM=(function(){
    p.run=cv(OFF,r,"corredor")||(tipo==="corrida"?(cv(OFF,r,"jugador p ext")||cv(OFF,r,"jugador pe fallado")):"");
    p.td=pe?(+ptx>0):!!cv(OFF,r,"td jugador");p.pePts=pe?(+ptx||0):0;
    p.yd=num(cv(OFF,r,"yd de pase"));if(p.yd===null)p.yd=num(cv(OFF,r,"yd corrida"));
+   if(legacy){p.legacy=true;if(p.spot==null)p.spot=(+ptx===2)?40:45;}
    p.pick6r=!!cv(OFF,r,"pick 6 rival");p.pick2r=!!cv(OFF,r,"pick 2 rival");p.int=!!cv(OFF,r,"intercep");
    out.push(p);});
   const fe={};
@@ -2841,7 +2843,7 @@ const NO_DATA="Este partido se cargó con el anotador anterior: no tiene drives,
 const pmName=n=>{const p=ROSTER.find(x=>String(x.num)===String(n));return p?`#${n} ${p.nombre.split(" ")[0]}`:`#${n}`;};
 
 /* ---------- Por partido ---------- */
-function gamePlays(part){return PM.plays().filter(p=>p.part===part&&!p.anul);}
+function gamePlays(part){return PM.plays().filter(p=>p.part===part&&!p.anul&&!p.legacy);}
 function scoringEvents(part){const ps=gamePlays(part).slice().sort((a,b)=>a.jug-b.jug);let f=0,r=0;const ev=[];
  ps.forEach(p=>{let t=null,who="F",pts=0;
   if(p.side==="o"){
@@ -2857,17 +2859,24 @@ function scoringEvents(part){const ps=gamePlays(part).slice().sort((a,b)=>a.jug-
  return ev;}
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function rivalOf(part){const sc=SCORES[part];return sc?sc.rival:"Rival";}
+function rawPE(part,jug,side){const T=side==="o"?OFF:DEF,ix=n=>T.idx[n]!==undefined?T.idx[n]:T.idx[normKey(n)],g=(r,n)=>{const i=ix(n);return i===undefined?"":String(r[i]??"").trim();};
+ const r=T.rows.find(r=>g(r,"Partido")===part&&+g(r,"jugada")===jug+1&&(g(r,"down")==="PE"||g(r,"situacion")==="PE"||g(r,side==="o"?"pt ext":"pe rival")!==""));if(!r)return null;
+ const pts=+g(r,side==="o"?"pt ext":"pe rival")||0,sp=parseFloat(g(r,"spot"));return {ok:pts>0,pts,spot:isNaN(sp)?null:sp};}
 function gameDrives(part){const ps=gamePlays(part).filter(p=>p.drive).sort((a,b)=>a.jug-b.jug);const D=[];
  ps.forEach(p=>{let d=D.find(x=>x.n===p.drive);if(!d){d={n:p.drive,side:p.side,ps:[]};D.push(d);}d.ps.push(p);});
  D.sort((a,b)=>a.n-b.n);
  const out=[];
  D.forEach(d=>{const main=d.ps.filter(p=>!p.pe);const first=d.ps[0],last=main[main.length-1]||d.ps[d.ps.length-1];
   const yd=main.reduce((a,p)=>a+(p.yd||0),0);const td=main.some(p=>p.td);const pe=d.ps.find(p=>p.pe);
-  let res="FIN";if(td)res="TD"+(pe?(pe.td?" +"+pe.pePts:" · PE ✕"):"");else if(main.some(p=>p.side==="o"?p.int:p.intc))res=d.side==="o"?"INT":"INT "+pmName(main.find(p=>p.intc).intc);else if(String(last.down)==="4")res="4° ✕";
+  const peTxt=x=>{if(!x)return "";const t=x.spot!=null?(x.spot>=44?"x1":"x2"):(x.pts===2?"x2":"x1");return x.ok?` + PE ${t}`:` · PE ${t} ✕`;};
+  let pex=pe?{ok:pe.td,spot:pe.spot,pts:pe.pePts}:null;
+  if(!pex&&main.some(p=>p.td)){const tdp=main.filter(p=>p.td).slice(-1)[0];pex=rawPE(tdp.part,tdp.jug,d.side);}
+  let res="FIN";if(td)res="TD"+peTxt(pex);else if(main.some(p=>p.side==="o"?p.int:p.intc))res=d.side==="o"?"INT":"INT "+pmName(main.find(p=>p.intc).intc);else if(String(last.down)==="4")res="4° ✕";
   let ret=null;const pk=main.find(p=>p.pick6||p.pick6r);
   if(pk){res="PICK 6"+(d.side==="d"?" "+pmName(pk.pick6||""):"");const ip=pk.pt||pk.ret;ret={side:d.side==="d"?"o":"d",from:ip?Math.max(0,Math.min(50,50-ip[1])):25,to:55};}
   // drive que es solo el punto extra después de un pick 6: se suma al anterior
-  if(!main.length&&pe&&out.length&&/^PICK 6/.test(out[out.length-1].res)){out[out.length-1].res+=pe.td?" +"+pe.pePts:" · PE ✕";return;}
+  if(!main.length&&pe&&out.length&&/^PICK 6/.test(out[out.length-1].res)){if(/PE/.test(out[out.length-1].res))return;out[out.length-1].res+=peTxt({ok:pe.td,spot:pe.spot,pts:pe.pePts});return;}
+  if(pk&&!pex){const r2=rawPE(pk.part,pk.jug,d.side==="d"?"o":"d");if(r2)res+=peTxt(r2);}
   const end=td?55:Math.max(0,Math.min(50,(last.spot||0)+(last.yd||0)));
   out.push({n:d.n,side:d.side,start:first.spot||5,end,plays:main.length,yd:Math.round(yd),res,t:first.tiempo,ret});});
  return out;}
@@ -2893,7 +2902,8 @@ function gameTVHTML(part,mode){
  const de=(a,b)=>b?`${a} de ${b}`:"",pc=(v,d)=>d?Math.round(v)+"%":"—";
  const kp=[{k:"TD",v:tot.td,a:1},{k:"% Pase",v:pc(tot.pasPct,tot._dTotal),s:de(tot.com,tot.total),a:1},{k:"% Recepción",v:pc(tot.recPct,tot._dRecTot),s:de(tot.recComp,tot.recTot),a:1},
   {k:"Yds pase",v:tot.passYD,s:tot._dCom?(tot.passYD/tot._dCom).toFixed(1)+" por pase":""},{k:"Yds corrida",v:tot.runYD,s:tot.runs?`${tot.runs} corridas`:""},{k:"Amagues",v:tot.amagues}];
- const kpis=`<div class="skpis gkpis">${kp.map(c=>`<div class="skpi ${c.a?'a':''}"><span class="skpi-k">${c.k}</span><div class="skpi-m"><b class="skpi-v">${c.v}</b>${c.s?`<span class="skpi-s">${c.s}</span>`:''}</div></div>`).join("")}</div>`;
+ const kd=[{k:"% Flags",v:pc(tot.flagPct,tot._dFlagTot),s:de(tot.flagBien,tot.flagTot),a:1},{k:"Flags",v:tot.flagBien},{k:"Deflecciones",v:tot.deflec},{k:"Intercepciones",v:tot.intercep},{k:"Pick 6",v:tot.pick6},{k:"Sacks",v:tot.sack}];
+ const kpis=`<div class="skpis gkpis">${kp.map(c=>`<div class="skpi ${c.a?'a':''}"><span class="skpi-k">${c.k}</span><div class="skpi-m"><b class="skpi-v">${c.v}</b>${c.s?`<span class="skpi-s">${c.s}</span>`:''}</div></div>`).join("")}</div><div class="skpis def gkpis">${kd.map(c=>`<div class="skpi ${c.a?'a':''}"><span class="skpi-k">${c.k}</span><div class="skpi-m"><b class="skpi-v">${c.v}</b>${c.s?`<span class="skpi-s">${c.s}</span>`:''}</div></div>`).join("")}</div>`;
  return `<div class="tvb"><div class="tvtop"><div class="tteam f">${fl?`<img class="tlg" src="${fl}" alt="">`:`<span class="tlg ph">FNX</span>`}<span class="tn">Fenix</span><b class="tsc">${ff==null?"?":ff}</b></div>
   <div class="tcen ${wcls}"><span class="fin">Final</span><b>${word||"—"}</b><span>${esc(labelOf(part))}</span></div>
   <div class="tteam r"><b class="tsc">${rr==null?"?":rr}</b><span class="tn">${esc(riv)}</span>${rl?`<img class="tlg" src="${rl}" alt="">`:`<span class="tlg ph r">${ab(riv)}</span>`}</div></div>
@@ -2972,7 +2982,7 @@ function renderSeasonMap(){if(!PM)return;const el=$("#seasonMap");if(!el)return;
  if(!S.show){el.innerHTML=`<button class="pm-show" data-sm="show">Ver mapa</button>`;$("#seasonTable").querySelectorAll("tr.pm-sel").forEach(t=>t.classList.remove("pm-sel"));return;}
  el.innerHTML=seasonMapHTML();
  $("#seasonTable").querySelectorAll("tbody tr:not(.total)").forEach(tr=>{const n=(tr.querySelector(".tdnum")||{}).textContent;if(!n)return;tr.classList.add("pm-click");tr.classList.toggle("pm-sel",String(n).trim()===S.pl);tr.onclick=()=>{S.pl=S.pl===String(n).trim()?"":String(n).trim();renderSeasonMap();};});}
-function wireSeasonMap(){const el=$("#seasonMap");if(!el)return;el.addEventListener("change",e=>{const s=e.target.closest('select[data-sm="pl"]');if(!s)return;PMS.season.pl=s.value;renderSeasonMap();});el.addEventListener("click",e=>{const b=e.target.closest("[data-sm]");if(!b)return;const S=PMS.season,a=b.dataset.sm;
+function wireSeasonMap(){const el=$("#seasonMap");if(!el)return;el.addEventListener("change",e=>{const s=e.target.closest('select[data-sm="pl"]');if(!s)return;PMS.season.pl=s.value;renderSeasonMap();});el.addEventListener("click",e=>{const b=e.target.closest("[data-sm]");if(!b||b.tagName==="SELECT")return;const S=PMS.season,a=b.dataset.sm;
  if(a==="clr")S.pl="";if(a==="view")S.view=b.dataset.v;if(a==="hide")S.show=false;if(a==="show")S.show=true;renderSeasonMap();});
  $("#segSeason").addEventListener("click",()=>{PMS.season.pl="";PMS.season.view=seasonSide==="def"?"rutas":"zonas";setTimeout(renderSeasonMap,0);});}
 
