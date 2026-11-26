@@ -769,7 +769,7 @@
   .ts-b{flex:1;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}.ts-c:not(.w) .ts-b{align-items:center;text-align:center}
   [data-tip]{position:relative}[data-tip]:hover::after,[data-tip]:focus::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--bg);font:600 12px var(--font-body);padding:5px 8px;border-radius:4px;z-index:20;pointer-events:none}
   [data-tip]:hover::before,[data-tip]:focus::before{content:"";position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--ink);border-top:0;z-index:20}
-  .ts-res{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:4px}.ts-res i{font:700 12px var(--font-display);font-style:normal;padding:3px 6px;border-radius:4px;border:1px solid var(--line-2);color:var(--muted);font-variant-numeric:tabular-nums}.ts-res i.w{color:#4ADE80;border-color:rgba(74,222,128,.4)}.ts-res i.l{color:#F87171;border-color:rgba(248,113,113,.4)}
+  .ts-res{display:grid;grid-template-columns:repeat(2,auto);justify-content:center;gap:3px;margin-top:4px}.ts-res i{font:700 11.5px var(--font-display);font-style:normal;padding:2px 4px;border-radius:4px;border:1px solid var(--line-2);color:var(--muted);font-variant-numeric:tabular-nums}.ts-res i.w{color:#4ADE80;border-color:rgba(74,222,128,.4)}.ts-res i.l{color:#F87171;border-color:rgba(248,113,113,.4)}
   .ts-dots{display:flex;gap:4px;margin-top:3px}.ts-dots i{width:10px;height:10px;border-radius:50%;background:#5A5C63}.ts-dots i.w{background:#4ADE80}.ts-dots i.l{background:#F87171}
   .ts-v.cur{font-size:24px;color:var(--accent)}.ts-s.nw{white-space:nowrap}
   .ts-top3{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:4px}.ts-top3 li{display:grid;grid-template-columns:22px 24px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:13.5px}
@@ -2389,6 +2389,13 @@ function renderSeason(){
   renderSeasonKpis(total);
   renderSeasonMap();
 }
+function peSummary(){try{if(!PM)return null;const ps=PM.plays().filter(p=>p.side==="o"&&p.pe&&!p.anul&&p.tipo!=="falta");if(!ps.length)return null;
+  const r={att:ps.length,ok:0,pts:0,x1:0,x1ok:0,x2:0,x2ok:0},why={};
+  ps.forEach(p=>{const two=p.pePts===2||(p.pePts!==1&&p.spot!=null&&p.spot<=42);const ok=p.pePts>0;if(ok){r.ok++;r.pts+=p.pePts;}
+   if(two){r.x2++;if(ok)r.x2ok++;}else{r.x1++;if(ok)r.x1ok++;}
+   if(!ok){const m=p.tipo==="sack"?"sack":p.tipo==="mal centro"?"mal centro":p.res==="X"?"intercepción":p.res==="D"?"drop":p.tipo==="corrida"?"corrida":"incompleto";why[m]=(why[m]||0)+1;}});
+  const pl={incompleto:"incompletos",intercepción:"intercepciones",sack:"sacks",drop:"drops","mal centro":"mal centro",corrida:"corridas"};
+  r.why=Object.entries(why).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v} ${v>1?pl[k]:k}`).join(" · ");return r;}catch(e){return null;}}
 function renderSeasonKpis(t){
   const el=$("#seasonKpis"); if(!el)return;
   const de=(a,b)=>b?`${a} de ${b}`:"";
@@ -2397,7 +2404,8 @@ function renderSeasonKpis(t){
    pase:[{k:"% Pase",v:pc(t.pasPct,t._dTotal),s:de(t.com,t.total)+(t.total?" pases":""),a:1},{k:"Completos",v:n(t.com),s:`${n(t.inc)} incompletos`},{k:"Yds por pase",v:av(t.promPass,t._dCom),s:`${n(t.passYD)} yds en total`},{k:"TD de pase",v:n(t.pasTD),a:1},{k:"Intercepciones",v:n(t.intLanz),s:"lanzadas"}],
    rec:[{k:"% Recepción",v:pc(t.recPct,t._dRecTot),s:de(t.recComp,t.recTot)+(t.recTot?" pases":""),a:1},{k:"Recepciones",v:n(t.recComp),s:`${n(t.drop)} drops`},{k:"Yds por recepción",v:av(t.promRec,t._dRecPos),s:`${n(t.ydRec)} yds en total`},{k:"Amagues",v:n(t.amagues)}],
    run:[{k:"Corridas",v:n(t.runs),a:1},{k:"Yds por corrida",v:av(t.promRun,t._dRuns),s:`${n(t.runYD)} yds en total`,a:1},{k:"TD de corrida",v:n(t.runTD),a:1},{k:"Amagues",v:n(t.amagues)}],
-   anot:[{k:"Touchdowns",v:n(t.td),a:1},{k:"PE anotados",v:n(t.peComp),s:`${n(t.pasPE)} de pase`,a:1},{k:"PE fallados",v:n(t.peFall),s:`${n(t.dropPE)} drops`},{k:"Faltas hechas",v:n(t.faltH),s:`${n(t.faltR)} recibidas`}],
+   anot:(()=>{const P=peSummary();if(!P)return [{k:"Touchdowns",v:n(t.td),a:1},{k:"PE anotados",v:n(t.peComp),s:`${n(t.pasPE)} de pase`,a:1},{k:"PE fallados",v:n(t.peFall),s:`${n(t.dropPE)} drops`},{k:"Faltas hechas",v:n(t.faltH),s:`${n(t.faltR)} recibidas`}];
+     return [{k:"Touchdowns",v:n(t.td),a:1},{k:"PE convertidos",v:`${P.ok}/${P.att}`,s:P.att?Math.round(P.ok/P.att*100)+"% efectividad":"",a:1},{k:"Puntos de PE",v:P.pts,s:`x1: ${P.x1ok} de ${P.x1} · x2: ${P.x2ok} de ${P.x2}`,a:1},{k:"PE fallados",v:P.att-P.ok,s:P.why||""},{k:"Faltas hechas",v:n(t.faltH),s:`${n(t.faltR)} recibidas`}];})(),
    def:[{k:"% Flags",v:pc(t.flagPct,t._dFlagTot),s:de(t.flagBien,t.flagTot),a:1},{k:"Flags",v:n(t.flagBien),s:`${n(t.flagMal)} errados`,a:1},{k:"Deflecciones",v:n(t.deflec)},{k:"Intercepciones",v:n(t.intercep),s:t.ydInt?`${n(t.ydInt)} yd devueltas`:""},{k:"Pick 6",v:n(t.pick6),s:t.pick2?`${n(t.pick2)} pick 2`:""},{k:"Sacks",v:n(t.sack),s:t.safety?`${n(t.safety)} safety`:""},{k:"Faltas hechas",v:n(t.dfaltH),s:`${n(t.dfaltR)} recibidas`}]};
   const list=L[seasonSide]||L.pase;
   el.className="skpis sk2"+(seasonSide==="def"?" def":"");
