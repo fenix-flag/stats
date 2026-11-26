@@ -2173,7 +2173,7 @@ function loadFotos(csv){
    ============================================================ */
 function offStats(rows,I,n){
   let peFall=0,dropPE=0,intLanz=0,com=0,inc=0,passYD=0,pasTD=0,pasPE=0,recComp=0,recPos=0,drop=0,ydRec=0,
-      runs=0,runYD=0,amagues=0,td=0,peComp=0,pePts=0,pasPEpts=0,faltH=0,faltR=0;
+      runs=0,runYD=0,runTD=0,amagues=0,td=0,peComp=0,pePts=0,pasPEpts=0,faltH=0,faltR=0;
   for(const r of rows){
     if(numId(r[I["pasador"]])===n){com++;passYD+=numVal(r[I["yd de pase"]]);}
     if(numId(r[I["pas inc"]])===n)inc++;
@@ -2184,7 +2184,7 @@ function offStats(rows,I,n){
     if(numId(r[I["asist p ext"]])===n){pasPE++;pasPEpts+=numVal(r[I["pt ext"]]);}
     if(numId(r[I["receptor"]])===n){recComp++;const y=numVal(r[I["yd ganadas recep"]]);ydRec+=y;if(y>0)recPos++;}
     if(numId(r[I["drop"]])===n)drop++;
-    if(numId(r[I["corredor"]])===n){runs++;runYD+=numVal(r[I["yd corrida"]]);}
+    if(numId(r[I["corredor"]])===n){runs++;runYD+=numVal(r[I["yd corrida"]]);if(numId(r[I["td jugador"]])===n)runTD++;}
     if(numId(r[I["amague jg"]])===n)amagues+=numVal(r[I["amagues"]]);
     if(numId(r[I["td jugador"]])===n)td++;
     if(numId(r[I["jugador p ext"]])===n){peComp++;pePts+=numVal(r[I["pt ext"]]);}
@@ -2194,7 +2194,7 @@ function offStats(rows,I,n){
   const total=com+inc, recTot=recComp+drop;
   return {peFall,dropPE,intLanz,com,inc,total,pasPct:div(com,total)*100,passYD,promPass:div(passYD,com),pasTD,pasPE,
     recComp,drop,recTot,recPct:div(recComp,recTot)*100,ydRec,promRec:div(ydRec,recPos),
-    runs,runYD,promRun:div(runYD,runs),amagues,td,peComp,pePts,pasPEpts,faltH,faltR,
+    runs,runYD,runTD,promRun:div(runYD,runs),amagues,td,peComp,pePts,pasPEpts,faltH,faltR,
     _dTotal:total,_dRecTot:recTot,_dCom:com,_dRecPos:recPos,_dRuns:runs};
 }
 function defStats(rows,I,n){
@@ -2247,7 +2247,7 @@ function games(){
 }
 function teamRow(players,label){
   const t={nombre:label,pos:""};
-  const keys=["com","inc","passYD","pasTD","pasPE","recComp","drop","ydRec","runs","runYD","amagues","td","peComp","pePts",
+  const keys=["com","inc","passYD","pasTD","pasPE","recComp","drop","ydRec","runs","runYD","runTD","amagues","td","peComp","pePts",
     "faltH","faltR","flagBien","flagMal","deflec","intercep","amagues2","pick6","sack","safety","dfaltH","dfaltR","points","scored","intLanz","ydInt","pick2","peFall","dropPE",
     "_dCom","_dRecPos","_dRuns"];
   keys.forEach(k=>t[k]=players.reduce((s,p)=>s+(p[k]||0),0));
@@ -2272,7 +2272,7 @@ const OFF_COLS=[
   {k:"recComp",t:"Rec",fmt:"int"},{k:"drop",t:"Drop",fmt:"int"},{k:"recTot",t:"Tot",fmt:"int"},
   {k:"recPct",t:"%Rec",fmt:"pct",denom:"_dRecTot"},{k:"ydRec",t:"YD",fmt:"int"},{k:"promRec",t:"Prom",fmt:"avg",denom:"_dRecPos"},{k:"amagues",t:"Amag",fmt:"int"},
   {g:"Corrida",gc:"o"},
-  {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YD",fmt:"int"},{k:"promRun",t:"Prom",fmt:"avg",denom:"_dRuns"},{k:"amagues",t:"Amag",fmt:"int"},
+  {k:"runs",t:"Runs",fmt:"int"},{k:"runYD",t:"YD",fmt:"int"},{k:"promRun",t:"Prom",fmt:"avg",denom:"_dRuns"},{k:"runTD",t:"TD",fmt:"int"},{k:"amagues",t:"Amag",fmt:"int"},
   {g:"Anotación",gc:"o"},
   {k:"td",t:"TD",fmt:"int"},{k:"peComp",t:"PE anot",fmt:"int"},{k:"pasPE",t:"PE pase",fmt:"int"},{k:"peFall",t:"PE fall",fmt:"int"},{k:"dropPE",t:"Drop PE",fmt:"int"},
   {g:"Faltas",gc:"o"},
@@ -2396,7 +2396,7 @@ function renderSeasonKpis(t){
   const L={
    pase:[{k:"% Pase",v:pc(t.pasPct,t._dTotal),s:de(t.com,t.total)+(t.total?" pases":""),a:1},{k:"Completos",v:n(t.com),s:`${n(t.inc)} incompletos`},{k:"Yds por pase",v:av(t.promPass,t._dCom),s:`${n(t.passYD)} yds en total`},{k:"TD de pase",v:n(t.pasTD),a:1},{k:"Intercepciones",v:n(t.intLanz),s:"lanzadas"}],
    rec:[{k:"% Recepción",v:pc(t.recPct,t._dRecTot),s:de(t.recComp,t.recTot)+(t.recTot?" pases":""),a:1},{k:"Recepciones",v:n(t.recComp),s:`${n(t.drop)} drops`},{k:"Yds por recepción",v:av(t.promRec,t._dRecPos),s:`${n(t.ydRec)} yds en total`},{k:"Amagues",v:n(t.amagues)}],
-   run:[{k:"Corridas",v:n(t.runs),a:1},{k:"Yds por corrida",v:av(t.promRun,t._dRuns),s:`${n(t.runYD)} yds en total`,a:1},{k:"Amagues",v:n(t.amagues)}],
+   run:[{k:"Corridas",v:n(t.runs),a:1},{k:"Yds por corrida",v:av(t.promRun,t._dRuns),s:`${n(t.runYD)} yds en total`,a:1},{k:"TD de corrida",v:n(t.runTD),a:1},{k:"Amagues",v:n(t.amagues)}],
    anot:[{k:"Touchdowns",v:n(t.td),a:1},{k:"PE anotados",v:n(t.peComp),s:`${n(t.pasPE)} de pase`,a:1},{k:"PE fallados",v:n(t.peFall),s:`${n(t.dropPE)} drops`},{k:"Faltas hechas",v:n(t.faltH),s:`${n(t.faltR)} recibidas`}],
    def:[{k:"% Flags",v:pc(t.flagPct,t._dFlagTot),s:de(t.flagBien,t.flagTot),a:1},{k:"Flags",v:n(t.flagBien),s:`${n(t.flagMal)} errados`,a:1},{k:"Deflecciones",v:n(t.deflec)},{k:"Intercepciones",v:n(t.intercep),s:t.ydInt?`${n(t.ydInt)} yd devueltas`:""},{k:"Pick 6",v:n(t.pick6),s:t.pick2?`${n(t.pick2)} pick 2`:""},{k:"Sacks",v:n(t.sack),s:t.safety?`${n(t.safety)} safety`:""},{k:"Faltas hechas",v:n(t.dfaltH),s:`${n(t.dfaltR)} recibidas`}]};
   const list=L[seasonSide]||L.pase;
@@ -2531,7 +2531,7 @@ function renderPlayer(){
   const defAct=(s.flagBien||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0)+(s.pick6||0)+(s.safety||0);
   if(defAct>0) readRows.push({lbl:"Defensa",cls:"d",cards:[["Flags",s.flagBien],["Deflec",s.deflec],["Intercep",s.intercep]]});
   const pasePairs=[["Comp / Inc",`${s.com} / ${s.inc}`],["% Pase",s._dTotal?Math.round(s.pasPct)+"%":"—"],["Yds pase",s.passYD],["Prom",s._dCom?s.promPass.toFixed(1):"—"],["TD pase",s.pasTD],["PE pase",s.pasPE]];
-  const recPairs=[["Recep",s.recComp],["Drops",s.drop],["% Rec",s._dRecTot?Math.round(s.recPct)+"%":"—"],["Yds recep",s.ydRec],["Corridas",s.runs],["Yds corr",s.runYD],["Amagues",s.amagues],["TD",s.td],["PE",s.peComp]];
+  const recPairs=[["Recep",s.recComp],["Drops",s.drop],["% Rec",s._dRecTot?Math.round(s.recPct)+"%":"—"],["Yds recep",s.ydRec],["Corridas",s.runs],["Yds corr",s.runYD],["TD corr",s.runTD||0],["Amagues",s.amagues],["TD",s.td],["PE",s.peComp]];
   const defPairs=[["Flags",s.flagBien],["% Flag",s._dFlagTot?Math.round(s.flagPct)+"%":"—"],["Deflec",s.deflec],["Intercep",s.intercep],["Pick 6",s.pick6],["Sacks",s.sack],["Safety",s.safety],["Pick 2",s.pick2],["Faltas",s.dfaltH]];
   /* ---- ficha póster ---- */
   const ofAct=(s._dTotal||0)+(s.recTot||0)+(s.runs||0), dfAct=(s.flagTot||0)+(s.deflec||0)+(s.intercep||0)+(s.sack||0);
@@ -3108,7 +3108,7 @@ function gameTVHTML(part,mode){
  if(mode==="stats")return `<div class="pm-card gstats"><div class="tvst"><div class="tvr gsh"><b class="f">Fenix</b><span>Estadísticas</span><b class="r">${esc(riv)}</b></div>${rows.map(([l,a,b])=>`<div class="tvr"><b class="f">${a}</b><span>${l}</span><b class="r">${b}</b></div>`).join("")}</div></div>`;
  const de=(a,b)=>b?`${a} de ${b}`:"",pc=(v,d)=>d?Math.round(v)+"%":"—";
  const kp=[{k:"TD",v:tot.td,a:1},{k:"% Pase",v:pc(tot.pasPct,tot._dTotal),s:de(tot.com,tot.total),a:1},{k:"% Recepción",v:pc(tot.recPct,tot._dRecTot),s:de(tot.recComp,tot.recTot),a:1},
-  {k:"Yds por pase",v:tot._dCom?(tot.passYD/tot._dCom).toFixed(1):"—",s:`${tot.passYD||0} yds en total`},{k:"Yds por corrida",v:tot.runs?(tot.runYD/tot.runs).toFixed(1):"—",s:`${tot.runYD||0} yds · ${tot.runs||0} corrida${tot.runs===1?"":"s"}`},{k:"Amagues",v:tot.amagues}];
+  {k:"Yds por pase",v:tot._dCom?(tot.passYD/tot._dCom).toFixed(1):"—",s:`${tot.passYD||0} yds en total`},{k:"Yds por corrida",v:tot.runs?(tot.runYD/tot.runs).toFixed(1):"—",s:`${tot.runYD||0} yds · ${tot.runs||0} corrida${tot.runs===1?"":"s"}${tot.runTD?` · ${tot.runTD} TD`:""}`},{k:"Amagues",v:tot.amagues}];
  const kd=[{k:"% Flags",v:pc(tot.flagPct,tot._dFlagTot),s:de(tot.flagBien,tot.flagTot),a:1},{k:"Flags",v:tot.flagBien,a:1},{k:"Deflecciones",v:tot.deflec,a:1},{k:"Intercepciones",v:tot.intercep},{k:"Pick 6",v:tot.pick6},{k:"Sacks",v:tot.sack}];
  const kpis=`<div class="skpis gkpis">${kp.map(c=>`<div class="skpi ${c.a?'a':''}"><span class="skpi-k">${c.k}</span><div class="skpi-m"><b class="skpi-v">${c.v}</b>${c.s?`<span class="skpi-s">${c.s}</span>`:''}</div></div>`).join("")}</div><div class="skpis def gkpis">${kd.map(c=>`<div class="skpi ${c.a?'a':''}"><span class="skpi-k">${c.k}</span><div class="skpi-m"><b class="skpi-v">${c.v}</b>${c.s?`<span class="skpi-s">${c.s}</span>`:''}</div></div>`).join("")}</div>`;
  return `<div class="tvb"><div class="tvtop"><div class="tteam f">${fl?`<img class="tlg" src="${fl}" alt="">`:`<span class="tlg ph">FNX</span>`}<span class="tn">Fenix</span><b class="tsc">${ff==null?"?":ff}</b></div>
